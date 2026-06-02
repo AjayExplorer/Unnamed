@@ -241,7 +241,7 @@ class _StaffAvailabilityTabState extends State<StaffAvailabilityTab> {
                           children: [
                             CircleAvatar(
                               backgroundColor: (isOnLeave ? Colors.red : Colors.green).withValues(alpha: 0.1),
-                              child: Text(f.name[0], style: TextStyle(color: isOnLeave ? Colors.red : Colors.green, fontWeight: FontWeight.bold)),
+                              child: Text((f.name.isNotEmpty ? f.name[0] : '?'), style: TextStyle(color: isOnLeave ? Colors.red : Colors.green, fontWeight: FontWeight.bold)),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
