@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../request_letter/faculty/providers/auth_provider.dart';
+import '../request_letter/faculty/faculty_main_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -182,7 +185,37 @@ class _LoginPageState extends State<LoginPage> {
                                 width: double.infinity,
                                 height: 50,
                                 child: ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    if (_selectedRole == 'Faculty') {
+                                      final success = await context.read<AuthProvider>().login(
+                                        _admissionController.text,
+                                        _passwordController.text,
+                                      );
+                                      
+                                      if (success) {
+                                        if (context.mounted) {
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => const FacultyMainScreen()),
+                                          );
+                                        }
+                                      } else {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Invalid Faculty credentials'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    } else {
+                                      // Handle Student/Admin if implemented
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Login for $_selectedRole not yet implemented')),
+                                      );
+                                    }
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryBlue,
                                     foregroundColor: Colors.white,
