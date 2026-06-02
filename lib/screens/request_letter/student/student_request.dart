@@ -14,7 +14,6 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
   
   String _searchQuery = "";
   String? _selectedFacultyId;
-  String? _selectedFacultyName;
   bool _isSubmitting = false;
 
   @override
@@ -293,13 +292,12 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: filteredDocs.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 10),
+                            separatorBuilder: (_, _) => const SizedBox(height: 10),
                             itemBuilder: (context, index) {
                               final faculty = filteredDocs[index];
                               final String id = faculty['id']!;
                               final String name = faculty['name']!;
                               final String dept = faculty['department']!;
-                              final bool isSelected = _selectedFacultyId == id;
 
                               return Container(
                                 padding: const EdgeInsets.all(10),
@@ -339,7 +337,6 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                                       onChanged: (String? value) {
                                         setState(() {
                                           _selectedFacultyId = value;
-                                          _selectedFacultyName = name;
                                         });
                                       },
                                     ),

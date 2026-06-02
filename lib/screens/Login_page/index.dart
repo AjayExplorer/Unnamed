@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../request_letter/faculty/providers/auth_provider.dart';
+import '../request_letter/faculty/faculty_main_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -169,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                                         MaterialTapTargetSize.shrinkWrap,
                                   ),
                                   child: const Text(
-                                    '',
+                                    'Forgot Password?',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -182,21 +185,40 @@ class _LoginPageState extends State<LoginPage> {
                                 width: double.infinity,
                                 height: 50,
                                 child: ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     if (_selectedRole == 'Student') {
                                       Navigator.of(
                                         context,
                                       ).pushReplacementNamed('/front');
                                       return;
+                                    } else if (_selectedRole == 'Faculty') {
+                                      final success = await context.read<AuthProvider>().login(
+                                        _admissionController.text,
+                                        _passwordController.text,
+                                      );
+                                      
+                                      if (success) {
+                                        if (context.mounted) {
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => const FacultyMainScreen()),
+                                          );
+                                        }
+                                      } else {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Invalid Faculty credentials'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Login for $_selectedRole not yet implemented')),
+                                      );
                                     }
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Faculty and Admin home is not added yet.',
-                                        ),
-                                      ),
-                                    );
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryBlue,
@@ -216,21 +238,21 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               const SizedBox(height: 22),
-                              if (_selectedRole == 'Student')
-                                Center(
-                                  child: Wrap(
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    children: [
-                                      Text(
-                                        "Don't have an account? ",
-                                        style: TextStyle(
-                                          color: textGrey.withValues(
-                                            alpha: 0.95,
-                                          ),
-                                          fontSize: 13,
+                              Center(
+                                child: Wrap(
+                                  crossAxisAlignment:
+                                      WrapCrossAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Don't have an account? ",
+                                      style: TextStyle(
+                                        color: textGrey.withValues(
+                                          alpha: 0.95,
                                         ),
+                                        fontSize: 13,
                                       ),
+                                    ),
+                                   
                                       TextButton(
                                         onPressed: () {Navigator.of(context).pushNamed('/register');},
                                         style: TextButton.styleFrom(
@@ -250,8 +272,8 @@ class _LoginPageState extends State<LoginPage> {
                                     ],
                                   ),
                                 ),
-                            ],
-                          ),
+                              ],
+                            ),
                         ),
                         const SizedBox(height: 16),
                         Text(

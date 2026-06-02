@@ -100,25 +100,23 @@ class _FrontPageState extends State<FrontPage> {
                                 crossAxisSpacing: 10,
                                 childAspectRatio: 0.88,
                               ),
-                         // Find this block around line 80-95 in front.dart:
-itemBuilder: (context, index) {
-  final tile = _featureTiles[index]; //[span_9](end_span)
-  
-  return _FeatureCard( //[span_10](end_span)
-    data: tile, //[span_11](end_span)
-    onTap: () {
-      if (tile.title.contains('News')) { //[span_12](end_span)
-       Navigator.of(context).pushNamed('/news'); //[span_13](end_span)
-      }  else if (tile.title.toLowerCase().contains('request')) {
-               Navigator.of(context).pushNamed('/student_request');
-}
-    },
-  );
-},
-                        ),
+                          itemBuilder: (context, index) {
+                            final tile = _featureTiles[index];
+                           return _FeatureCard(
+  data: tile,
+  onTap: () {
+    if (tile.title.contains('News')) {
+      Navigator.of(context).pushNamed('/news');
+    } else if (tile.title.toLowerCase().contains('request')) {
+      Navigator.of(context).pushNamed('/student_request');
+    }
+  },
+); // Closes the _FeatureCard widget statement cleanly inside itemBuilder
+      }, // Closes the itemBuilder function block parameter
+    ), // Closes the GridView.builder widget call frame completely
 
-                 
-                        const SizedBox(height: 16),
+    const SizedBox(height: 16),
+
                         Text(
                           'Hello $displayName!',
                           style: const TextStyle(
@@ -160,7 +158,7 @@ itemBuilder: (context, index) {
                               child: ListView.separated(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: featured.length,
-                                separatorBuilder: (context, index) =>
+                                separatorBuilder: (_, __) =>
                                     const SizedBox(width: 10),
                                 itemBuilder: (context, index) {
                                   return _NewsCard(
@@ -304,6 +302,25 @@ itemBuilder: (context, index) {
                   : NetworkImage(photoUrl),
               backgroundColor: const Color(0xFFD8ECE0),
               child: const Icon(Icons.person, color: Color(0xFF344054)),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Icon(
+                Icons.logout_rounded,
+                color: Color(0xFF344054),
+                size: 18,
+              ),
             ),
           ),
         ],

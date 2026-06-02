@@ -9,7 +9,7 @@ class StudentRegistration extends StatefulWidget {
 
 class _StudentRegistrationState extends State<StudentRegistration> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Controllers matching teammate's standard instantiations
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -33,7 +33,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
   @override
   Widget build(BuildContext context) {
     const textGrey = Color(0xFF667085); 
-    
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -63,7 +63,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                
+
                 // Section Title matching target text structure
                 const Text(
                   'Register Now',
@@ -197,7 +197,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                             children: [
                               Text(
                                 "Already have an account? ",
-                                style: TextStyle(color: textGrey.withOpacity(0.95), fontSize: 13),
+                                style: TextStyle(color: textGrey.withValues(alpha: 0.95), fontSize: 13),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(),
@@ -236,6 +236,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
       ),
     );
   }
+
   // Robust TextFormField builder borrowing style choices from teammate's StyledField
   Widget _buildInputField({
     required TextEditingController controller,
@@ -245,38 +246,36 @@ class _StudentRegistrationState extends State<StudentRegistration> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
-
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
-             decoration: InputDecoration(
-          hintText: hintText,
-          suffixIcon: suffixIcon,
-          filled: true,
-          fillColor: const Color(0xFFF9FAFB), 
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16), 
-          hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14), 
-          errorStyle: const TextStyle(height: 0.6),
-                enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
-      ), // OutlineInputBorder
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFF96B79D), width: 1.4),
-      ), // OutlineInputBorder
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Colors.redAccent, width: 1),
-      ), // OutlineInputBorder
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Colors.redAccent, width: 1.4),
-      ), // OutlineInputBorder
-    ), // InputDecoration
-  ); // TextFormField
-}
-
+      decoration: InputDecoration(
+        hintText: hintText,
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: const Color(0xFFF9FAFB), 
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16), 
+        hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14), 
+        errorStyle: const TextStyle(height: 0.6),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF96B79D), width: 1.4),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.4),
+        ),
+      ),
+    );
   }
+}
