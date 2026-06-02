@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openpro/models/news_feed.dart';
 import 'package:openpro/models/user_profile.dart';
 
 class FrontPage extends StatefulWidget {
@@ -100,7 +101,14 @@ class _FrontPageState extends State<FrontPage> {
                                 childAspectRatio: 0.88,
                               ),
                           itemBuilder: (context, index) {
-                            return _FeatureCard(data: _featureTiles[index]);
+                            final tile = _featureTiles[index];
+                            return _FeatureCard(
+                              data: tile,
+                              onTap: tile.title.contains('News')
+                                  ? () =>
+                                        Navigator.of(context).pushNamed('/news')
+                                  : null,
+                            );
                           },
                         ),
                         const SizedBox(height: 16),
@@ -136,23 +144,25 @@ class _FrontPageState extends State<FrontPage> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        SizedBox(
-                          height: 112,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 3,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: 10),
-                            itemBuilder: (context, index) {
-                              return _NewsCard(
-                                title: index == 0
-                                    ? 'Tech Fest starts this Friday'
-                                    : index == 1
-                                    ? 'New ride sharing slots opened'
-                                    : 'Green campus clean-up campaign',
-                              );
-                            },
-                          ),
+                        ValueListenableBuilder<List<NewsPost>>(
+                          valueListenable: newsFeedNotifier,
+                          builder: (context, feed, _) {
+                            final featured = feed.take(3).toList();
+                            return SizedBox(
+                              height: 112,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: featured.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: 10),
+                                itemBuilder: (context, index) {
+                                  return _NewsCard(
+                                    title: featured[index].title,
+                                  );
+                                },
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -243,35 +253,38 @@ class _FrontPageState extends State<FrontPage> {
               ),
             ),
           ),
-          Container(
-            width: 34,
-            height: 34,
-            margin: const EdgeInsets.only(right: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Stack(
-              children: [
-                const Center(
-                  child: Icon(
-                    Icons.notifications_none_rounded,
-                    color: Color(0xFF344054),
-                  ),
-                ),
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFEF4444),
-                      shape: BoxShape.circle,
+          GestureDetector(
+            onTap: () => Navigator.of(context).pushNamed('/alerts'),
+            child: Container(
+              width: 34,
+              height: 34,
+              margin: const EdgeInsets.only(right: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Stack(
+                children: [
+                  const Center(
+                    child: Icon(
+                      Icons.notifications_none_rounded,
+                      color: Color(0xFF344054),
                     ),
                   ),
-                ),
-              ],
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           CircleAvatar(
@@ -372,33 +385,36 @@ class _FrontPageState extends State<FrontPage> {
 }
 
 class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({required this.data});
+  const _FeatureCard({required this.data, this.onTap});
 
   final _FeatureTileData data;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: data.background,
+    return Material(
+      color: data.background,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
         borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(data.icon, color: data.foreground, size: 30),
-          const SizedBox(height: 6),
-          Text(
-            data.title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: data.foreground,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              height: 1,
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(data.icon, color: data.foreground, size: 30),
+            const SizedBox(height: 6),
+            Text(
+              data.title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: data.foreground,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                height: 1,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
