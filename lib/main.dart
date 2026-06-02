@@ -4,6 +4,7 @@ import 'screens/alerts/index.dart';
 import 'screens/main_page/front.dart';
 import 'screens/news/index.dart';
 import 'screens/profile/index.dart';
+import 'screens/request_letter/student_registration/student_registration.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
         '/alerts': (context) => const AlertsPage(),
         '/news': (context) => const NewsPage(),
         '/profile': (context) => const ProfilePage(),
+        '/register': (context) => const StudentRegistration(), 
       },
     );
   }

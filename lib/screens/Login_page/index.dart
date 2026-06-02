@@ -232,7 +232,7 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                       ),
                                       TextButton(
-                                        onPressed: () {},
+                                        onPressed: () {Navigator.of(context).pushNamed('/register');},
                                         style: TextButton.styleFrom(
                                           foregroundColor: accentBlue,
                                           padding: EdgeInsets.zero,
