@@ -1,11 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:openpro/models/news_feed.dart';
+import 'package:provider/provider.dart';
+import '../../providers/news_provider.dart';
 
-class AlertsPage extends StatelessWidget {
+class AlertsPage extends StatefulWidget {
   const AlertsPage({super.key});
 
   @override
+  State<AlertsPage> createState() => _AlertsPageState();
+}
+
+class _AlertsPageState extends State<AlertsPage> {
+  bool _didLoadNews = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didLoadNews) {
+      _didLoadNews = true;
+      context.read<NewsProvider>().loadNewsPosts();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final newsProvider = context.watch<NewsProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F7),
       appBar: AppBar(
@@ -21,15 +40,36 @@ class AlertsPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ValueListenableBuilder<List<NewsPost>>(
-        valueListenable: newsFeedNotifier,
-        builder: (context, feed, _) {
+      body: Builder(
+        builder: (context) {
+          if (newsProvider.isLoading && newsProvider.posts.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (newsProvider.errorMessage != null && newsProvider.posts.isEmpty) {
+            return Center(
+              child: Text(
+                newsProvider.errorMessage!,
+                style: const TextStyle(color: Colors.red),
+              ),
+            );
+          }
+
+          if (newsProvider.posts.isEmpty) {
+            return const Center(
+              child: Text(
+                'No alerts or news available yet.',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            );
+          }
+
           return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: feed.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemCount: newsProvider.posts.length,
+            separatorBuilder: (context, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
-              final item = feed[index];
+              final item = newsProvider.posts[index];
               return Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(

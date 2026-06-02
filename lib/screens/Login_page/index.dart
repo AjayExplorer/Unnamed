@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../providers/student_provider.dart';
 import '../request_letter/faculty/providers/auth_provider.dart';
 import '../request_letter/faculty/faculty_main_screen.dart';
+import '../admin/providers/admin_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -187,9 +189,36 @@ class _LoginPageState extends State<LoginPage> {
                                 child: ElevatedButton(
                                   onPressed: () async {
                                     if (_selectedRole == 'Student') {
-                                      Navigator.of(
-                                        context,
-                                      ).pushReplacementNamed('/front');
+                                      if (_admissionController.text.trim().isEmpty ||
+                                          _passwordController.text.trim().isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Please enter admission number and password'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      final success = await context.read<StudentProvider>().verifyStudentCredentials(
+                                            _admissionController.text.trim().toUpperCase(),
+                                            _passwordController.text.trim(),
+                                          );
+
+                                      if (success) {
+                                        if (context.mounted) {
+                                          Navigator.of(context).pushReplacementNamed('/front');
+                                        }
+                                      } else {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(context.read<StudentProvider>().errorMessage ?? 'Incorrect Admission Number or Password'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
                                       return;
                                     } else if (_selectedRole == 'Faculty') {
                                       final success = await context.read<AuthProvider>().login(
@@ -209,6 +238,27 @@ class _LoginPageState extends State<LoginPage> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             const SnackBar(
                                               content: Text('Invalid Faculty credentials'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                      return;
+                                    } else if (_selectedRole == 'Admin') {
+                                      final success = await context.read<AdminProvider>().login(
+                                        _admissionController.text,
+                                        _passwordController.text,
+                                      );
+
+                                      if (success) {
+                                        if (context.mounted) {
+                                          Navigator.pushReplacementNamed(context, '/admin_dashboard');
+                                        }
+                                      } else {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(context.read<AdminProvider>().errorMessage ?? 'Invalid Admin credentials'),
                                               backgroundColor: Colors.red,
                                             ),
                                           );
@@ -238,41 +288,42 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               const SizedBox(height: 22),
-                              Center(
-                                child: Wrap(
-                                  crossAxisAlignment:
-                                      WrapCrossAlignment.center,
-                                  children: [
-                                    Text(
-                                      "Don't have an account? ",
-                                      style: TextStyle(
-                                        color: textGrey.withValues(
-                                          alpha: 0.95,
-                                        ),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pushNamed('/register');
-                                      },
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: accentBlue,
-                                        padding: EdgeInsets.zero,
-                                        tapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                      child: const Text(
-                                        'Register',
+                              if (_selectedRole == 'Faculty')
+                                Center(
+                                  child: Wrap(
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Don't have an account? ",
                                         style: TextStyle(
+                                          color: textGrey.withValues(
+                                            alpha: 0.95,
+                                          ),
                                           fontSize: 13,
-                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pushNamed('/faculty_register');
+                                        },
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: accentBlue,
+                                          padding: EdgeInsets.zero,
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        child: const Text(
+                                          'Register',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),

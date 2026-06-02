@@ -32,6 +32,7 @@ class Faculty {
       'name': name,
       'designation': designation,
       'username': username,
+      'password': password,
       'profilePhoto': profilePhoto,
       'phone': phone,
       'email': email,

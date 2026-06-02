@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:openpro/models/news_feed.dart';
-import 'package:openpro/models/user_profile.dart';
+import 'package:provider/provider.dart';
+import '../../providers/news_provider.dart';
+import '../../providers/student_provider.dart';
 
 class FrontPage extends StatefulWidget {
   const FrontPage({super.key});
@@ -11,6 +12,7 @@ class FrontPage extends StatefulWidget {
 
 class _FrontPageState extends State<FrontPage> {
   int _selectedTab = 0;
+  bool _didLoadNews = false;
 
   final List<_FeatureTileData> _featureTiles = const [
     _FeatureTileData(
@@ -64,157 +66,189 @@ class _FrontPageState extends State<FrontPage> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<UserProfile>(
-      valueListenable: userProfileNotifier,
-      builder: (context, profile, _) {
-        final displayName = _displayName(profile.name);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didLoadNews) {
+      _didLoadNews = true;
+      context.read<NewsProvider>().loadNewsPosts();
+    }
+  }
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFE8EFE9),
-          body: SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(displayName, profile.photoUrl),
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF8F9F7),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
-                      ),
-                    ),
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
-                      children: [
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _featureTiles.length,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                mainAxisSpacing: 10,
-                                crossAxisSpacing: 10,
-                                childAspectRatio: 0.88,
-                              ),
-                          itemBuilder: (context, index) {
-                            final tile = _featureTiles[index];
-                            return _FeatureCard(
-                              data: tile,
-                              onTap: tile.title.contains('News')
-                                  ? () =>
-                                        Navigator.of(context).pushNamed('/news')
-                                  : null,
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Hello $displayName!',
-                          style: const TextStyle(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.8,
-                            color: Color(0xFF101828),
-                            height: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Latest Activities',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF101828),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        _buildActivityCard(),
-                        const SizedBox(height: 18),
-                        const Text(
-                          'Featured News',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.6,
-                            color: Color(0xFF101828),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        ValueListenableBuilder<List<NewsPost>>(
-                          valueListenable: newsFeedNotifier,
-                          builder: (context, feed, _) {
-                            final featured = feed.take(3).toList();
-                            return SizedBox(
-                              height: 112,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: featured.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(width: 10),
-                                itemBuilder: (context, index) {
-                                  return _NewsCard(
-                                    title: featured[index].title,
-                                  );
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+  @override
+  Widget build(BuildContext context) {
+    final studentProvider = context.watch<StudentProvider>();
+    final newsProvider = context.watch<NewsProvider>();
+    final currentStudent = studentProvider.currentStudent;
+    final displayName = _displayName(currentStudent?.fullName ?? 'Student');
+    final photoUrl = currentStudent?.photoUrl ?? '';
+    final featured = newsProvider.posts.take(3).toList();
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFE8EFE9),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(displayName, photoUrl),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF8F9F7),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
                   ),
                 ),
-              ],
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+                  children: [
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _featureTiles.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: 0.88,
+                          ),
+                      itemBuilder: (context, index) {
+                        final tile = _featureTiles[index];
+                        return _FeatureCard(
+                          data: tile,
+                          onTap: tile.title.contains('News')
+                              ? () => Navigator.of(context).pushNamed('/news')
+                              : null,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Hello $displayName!',
+                      style: const TextStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.8,
+                        color: Color(0xFF101828),
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Latest Activities',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF101828),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildActivityCard(),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Featured News',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.6,
+                        color: Color(0xFF101828),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    if (newsProvider.isLoading)
+                      const SizedBox(
+                        height: 112,
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else if (newsProvider.errorMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFE4E7EC)),
+                        ),
+                        child: Text(
+                          newsProvider.errorMessage!,
+                          style: const TextStyle(
+                            color: Color(0xFFDC2626),
+                          ),
+                        ),
+                      )
+                    else if (featured.isEmpty)
+                      const Text(
+                        'No news available. Tap News to add a post.',
+                        style: TextStyle(
+                          color: Color(0xFF667085),
+                          fontSize: 14,
+                        ),
+                      )
+                    else
+                      SizedBox(
+                        height: 112,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: featured.length,
+                          separatorBuilder: (context, _) => const SizedBox(width: 10),
+                          itemBuilder: (context, index) {
+                            return _NewsCard(
+                              title: featured[index].title,
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _selectedTab,
-            onTap: (value) {
-              if (value == 2) {
-                Navigator.of(context).pushNamed('/alerts');
-                return;
-              }
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedTab,
+        onTap: (value) {
+          if (value == 2) {
+            Navigator.of(context).pushNamed('/alerts');
+            return;
+          }
 
-              if (value == 3) {
-                Navigator.of(context).pushNamed('/profile');
-                return;
-              }
+          if (value == 3) {
+            Navigator.of(context).pushNamed('/profile');
+            return;
+          }
 
-              setState(() => _selectedTab = value);
-            },
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: const Color(0xFF5A7A5E),
-            unselectedItemColor: const Color(0xFF344054),
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home_rounded),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.assignment_outlined),
-                activeIcon: Icon(Icons.assignment),
-                label: 'Requests',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.notifications_none_outlined),
-                activeIcon: Icon(Icons.notifications),
-                label: 'Alerts',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
+          setState(() => _selectedTab = value);
+        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color(0xFF5A7A5E),
+        unselectedItemColor: const Color(0xFF344054),
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home_rounded),
+            label: 'Home',
           ),
-        );
-      },
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment_outlined),
+            activeIcon: Icon(Icons.assignment),
+            label: 'Requests',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none_outlined),
+            activeIcon: Icon(Icons.notifications),
+            label: 'Alerts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
     );
   }
 

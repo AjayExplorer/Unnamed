@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/student_provider.dart';
 
 class StudentRegistration extends StatefulWidget {
   const StudentRegistration({super.key});
@@ -19,6 +21,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isRegistering = false;
 
   @override
   void dispose() {
@@ -166,26 +169,35 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                         SizedBox(
                           width: double.infinity,
                           height: 50,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Processing Registration...')),
-                                );
-                              }
+                          child: Consumer<StudentProvider>(
+                            builder: (context, studentProvider, _) {
+                              return ElevatedButton(
+                                onPressed: _isRegistering || studentProvider.isLoading
+                                    ? null
+                                    : () => _handleRegistration(context, studentProvider),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF174EA6), // Custom Layout matching Sage Button tint
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                ),
+                                child: _isRegistering || studentProvider.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Register',
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                                      ),
+                              );
                             },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF174EA6), // Custom Layout matching Sage Button tint
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                            ),
-                            child: const Text(
-                              'Register',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                            ),
                           ),
                         ),
                         const SizedBox(height: 22),
@@ -224,6 +236,62 @@ class _StudentRegistrationState extends State<StudentRegistration> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleRegistration(
+    BuildContext context,
+    StudentProvider studentProvider,
+  ) async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isRegistering = true);
+
+    final success = await studentProvider.registerStudent(
+      _nameController.text.trim(),
+      _phoneController.text.trim(),
+      _admissionController.text.trim().toUpperCase(),
+      _passwordController.text,
+      _confirmPasswordController.text,
+    );
+
+    if (!mounted) return;
+
+    setState(() => _isRegistering = false);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(studentProvider.successMessage ?? 'Registration successful!'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+
+      // Clear controllers
+      _nameController.clear();
+      _phoneController.clear();
+      _admissionController.clear();
+      _passwordController.clear();
+      _confirmPasswordController.clear();
+
+      // Navigate back after a short delay
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(studentProvider.errorMessage ?? 'Registration failed!'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+
+    studentProvider.clearMessages();
   }
 
   // Label configuration helper matching teammate layout semantics
