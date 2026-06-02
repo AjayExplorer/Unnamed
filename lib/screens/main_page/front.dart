@@ -299,6 +299,25 @@ class _FrontPageState extends State<FrontPage> {
               child: const Icon(Icons.person, color: Color(0xFF344054)),
             ),
           ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Icon(
+                Icons.logout_rounded,
+                color: Color(0xFF344054),
+                size: 18,
+              ),
+            ),
+          ),
         ],
       ),
     );
