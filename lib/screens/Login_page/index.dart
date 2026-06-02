@@ -127,7 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                               _StyledField(
                                 controller: _admissionController,
                                 hintText: _selectedRole == 'Student'
-                                    ? 'e.g., AD202401'
+                                    ? 'e.g., KGR23CS000'
                                     : 'Enter username',
                                 keyboardType: TextInputType.text,
                               ),
