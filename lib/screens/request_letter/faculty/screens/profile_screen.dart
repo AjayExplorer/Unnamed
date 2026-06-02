@@ -29,6 +29,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   @override
+  void dispose() {
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     const primaryBlue = Color(0xFF174EA6);
     final authProvider = context.watch<AuthProvider>();
