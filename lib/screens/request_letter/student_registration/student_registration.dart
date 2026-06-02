@@ -100,7 +100,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                         _buildLabel('Full Name'),
                         _buildInputField(
                           controller: _nameController,
-                          hintText: 'John Doe',
+                          hintText: 'Your name',
                           keyboardType: TextInputType.name,
                           validator: (v) => v!.isEmpty ? 'Please enter your name' : null,
                         ),
@@ -120,7 +120,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                         _buildLabel('Admission Number'),
                         _buildInputField(
                           controller: _admissionController,
-                          hintText: 'A0202401',
+                          hintText: 'KGR23CS000',
                           validator: (v) => v!.isEmpty ? 'Please enter admission number' : null,
                         ),
                         const SizedBox(height: 16),
