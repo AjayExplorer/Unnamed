@@ -53,7 +53,7 @@ class _NewsPageState extends State<NewsPage> {
           return ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
             itemCount: feed.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            separatorBuilder: (context, index) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final post = feed[index];
               return Container(

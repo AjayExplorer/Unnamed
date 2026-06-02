@@ -100,17 +100,24 @@ class _FrontPageState extends State<FrontPage> {
                                 crossAxisSpacing: 10,
                                 childAspectRatio: 0.88,
                               ),
-                          itemBuilder: (context, index) {
-                            final tile = _featureTiles[index];
-                            return _FeatureCard(
-                              data: tile,
-                              onTap: tile.title.contains('News')
-                                  ? () =>
-                                        Navigator.of(context).pushNamed('/news')
-                                  : null,
-                            );
-                          },
+                         // Find this block around line 80-95 in front.dart:
+itemBuilder: (context, index) {
+  final tile = _featureTiles[index]; //[span_9](end_span)
+  
+  return _FeatureCard( //[span_10](end_span)
+    data: tile, //[span_11](end_span)
+    onTap: () {
+      if (tile.title.contains('News')) { //[span_12](end_span)
+       Navigator.of(context).pushNamed('/news'); //[span_13](end_span)
+      }  else if (tile.title.toLowerCase().contains('request')) {
+               Navigator.of(context).pushNamed('/student_request');
+}
+    },
+  );
+},
                         ),
+
+                 
                         const SizedBox(height: 16),
                         Text(
                           'Hello $displayName!',
@@ -153,7 +160,7 @@ class _FrontPageState extends State<FrontPage> {
                               child: ListView.separated(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: featured.length,
-                                separatorBuilder: (_, __) =>
+                                separatorBuilder: (context, index) =>
                                     const SizedBox(width: 10),
                                 itemBuilder: (context, index) {
                                   return _NewsCard(
