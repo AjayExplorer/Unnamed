@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openpro/models/user_profile.dart';
 
 class FrontPage extends StatefulWidget {
   const FrontPage({super.key});
@@ -63,131 +64,151 @@ class _FrontPageState extends State<FrontPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFE8EFE9),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF8F9F7),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+    return ValueListenableBuilder<UserProfile>(
+      valueListenable: userProfileNotifier,
+      builder: (context, profile, _) {
+        final displayName = _displayName(profile.name);
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFE8EFE9),
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(displayName, profile.photoUrl),
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF8F9F7),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                    ),
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+                      children: [
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _featureTiles.length,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 10,
+                                crossAxisSpacing: 10,
+                                childAspectRatio: 0.88,
+                              ),
+                          itemBuilder: (context, index) {
+                            return _FeatureCard(data: _featureTiles[index]);
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Hello $displayName!',
+                          style: const TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.8,
+                            color: Color(0xFF101828),
+                            height: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Latest Activities',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF101828),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildActivityCard(),
+                        const SizedBox(height: 18),
+                        const Text(
+                          'Featured News',
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.6,
+                            color: Color(0xFF101828),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: 112,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: 3,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 10),
+                            itemBuilder: (context, index) {
+                              return _NewsCard(
+                                title: index == 0
+                                    ? 'Tech Fest starts this Friday'
+                                    : index == 1
+                                    ? 'New ride sharing slots opened'
+                                    : 'Green campus clean-up campaign',
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
-                  children: [
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _featureTiles.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 10,
-                            crossAxisSpacing: 10,
-                            childAspectRatio: 0.88,
-                          ),
-                      itemBuilder: (context, index) {
-                        return _FeatureCard(data: _featureTiles[index]);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Hello Sarah!',
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.8,
-                        color: Color(0xFF101828),
-                        height: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Latest Activities',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF101828),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildActivityCard(),
-                    const SizedBox(height: 18),
-                    const Text(
-                      'Featured News',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.6,
-                        color: Color(0xFF101828),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      height: 112,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: 3,
-                        separatorBuilder: (_, __) => const SizedBox(width: 10),
-                        itemBuilder: (context, index) {
-                          return _NewsCard(
-                            title: index == 0
-                                ? 'Tech Fest starts this Friday'
-                                : index == 1
-                                ? 'New ride sharing slots opened'
-                                : 'Green campus clean-up campaign',
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedTab,
-        onTap: (value) => setState(() => _selectedTab = value),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF5A7A5E),
-        unselectedItemColor: const Color(0xFF344054),
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment),
-            label: 'Requests',
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _selectedTab,
+            onTap: (value) {
+              if (value == 2) {
+                Navigator.of(context).pushNamed('/alerts');
+                return;
+              }
+
+              if (value == 3) {
+                Navigator.of(context).pushNamed('/profile');
+                return;
+              }
+
+              setState(() => _selectedTab = value);
+            },
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: const Color(0xFF5A7A5E),
+            unselectedItemColor: const Color(0xFF344054),
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home_rounded),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.assignment_outlined),
+                activeIcon: Icon(Icons.assignment),
+                label: 'Requests',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.notifications_none_outlined),
+                activeIcon: Icon(Icons.notifications),
+                label: 'Alerts',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_none_outlined),
-            activeIcon: Icon(Icons.notifications),
-            label: 'Alerts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String displayName, String photoUrl) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
@@ -211,10 +232,10 @@ class _FrontPageState extends State<FrontPage> {
             child: const Icon(Icons.school, color: Color(0xFF1E5CB3), size: 24),
           ),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Hello\nSarah!',
-              style: TextStyle(
+              'Hello\n$displayName!',
+              style: const TextStyle(
                 color: Color(0xFF101828),
                 fontWeight: FontWeight.w700,
                 fontSize: 24,
@@ -253,28 +274,31 @@ class _FrontPageState extends State<FrontPage> {
               ],
             ),
           ),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1A000000),
-                  blurRadius: 8,
-                  offset: Offset(0, 3),
-                ),
-              ],
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFD6C7), Color(0xFFC18A6B)],
-              ),
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: Colors.white,
+            child: CircleAvatar(
+              radius: 20,
+              foregroundImage: photoUrl.trim().isEmpty
+                  ? null
+                  : NetworkImage(photoUrl),
+              backgroundColor: const Color(0xFFD8ECE0),
+              child: const Icon(Icons.person, color: Color(0xFF344054)),
             ),
-            child: const Icon(Icons.person, color: Colors.white),
           ),
         ],
       ),
     );
+  }
+
+  String _displayName(String fullName) {
+    final trimmed = fullName.trim();
+    if (trimmed.isEmpty) {
+      return 'Student';
+    }
+
+    final parts = trimmed.split(RegExp(r'\s+'));
+    return parts.first;
   }
 
   Widget _buildActivityCard() {

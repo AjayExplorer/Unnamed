@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'screens/Login_page/index.dart';
+import 'screens/alerts/index.dart';
 import 'screens/main_page/front.dart';
+import 'screens/profile/index.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,6 +24,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/front': (context) => const FrontPage(),
+        '/alerts': (context) => const AlertsPage(),
+        '/profile': (context) => const ProfilePage(),
       },
     );
   }
