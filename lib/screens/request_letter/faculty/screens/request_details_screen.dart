@@ -36,8 +36,8 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     const primaryBlue = Color(0xFF174EA6);
-    final authProvider = context.read<AuthProvider>();
-    final faculty = authProvider.currentFaculty!;
+    final faculty = context.read<AuthProvider>().currentFaculty;
+    if (faculty == null) return const SizedBox.shrink();
     final isPending = widget.request.status == 'Pending' || widget.request.status.contains('Forwarded');
 
     return Scaffold(
