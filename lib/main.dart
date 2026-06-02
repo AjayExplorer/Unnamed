@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/Login_page/index.dart';
+import 'screens/main_page/front.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +18,11 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF174EA6)),
       ),
-      home: const LoginPage(),
+      initialRoute: '/login',
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/front': (context) => const FrontPage(),
+      },
     );
   }
 }

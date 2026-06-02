@@ -182,7 +182,22 @@ class _LoginPageState extends State<LoginPage> {
                                 width: double.infinity,
                                 height: 50,
                                 child: ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    if (_selectedRole == 'Student') {
+                                      Navigator.of(
+                                        context,
+                                      ).pushReplacementNamed('/front');
+                                      return;
+                                    }
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Faculty and Admin home is not added yet.',
+                                        ),
+                                      ),
+                                    );
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryBlue,
                                     foregroundColor: Colors.white,
