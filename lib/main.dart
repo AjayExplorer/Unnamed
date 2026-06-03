@@ -9,6 +9,8 @@ import 'screens/request_letter/faculty/providers/auth_provider.dart';
 import 'screens/request_letter/faculty/providers/request_provider.dart';
 import 'screens/request_letter/faculty/providers/availability_provider.dart';
 import 'screens/request_letter/student_registration/student_registration.dart';
+import 'screens/request_letter/student/student_request.dart';
+
 
 void main() {
   runApp(
@@ -43,6 +45,7 @@ class MyApp extends StatelessWidget {
         '/news': (context) => const NewsPage(),
         '/profile': (context) => const ProfilePage(),
         '/register': (context) => const StudentRegistration(),
+        '/student_request': (context) => const StudentRequestPage(),
       },
     );
   }
