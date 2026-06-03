@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:openpro/models/news_feed.dart';
 import 'package:openpro/models/user_profile.dart';
+import 'package:openpro/screens/request_letter/student/student_request.dart';
 
 class FrontPage extends StatefulWidget {
   const FrontPage({super.key});
@@ -102,16 +103,21 @@ class _FrontPageState extends State<FrontPage> {
                               ),
                           itemBuilder: (context, index) {
                             final tile = _featureTiles[index];
-                            return _FeatureCard(
-                              data: tile,
-                              onTap: tile.title.contains('News')
-                                  ? () =>
-                                        Navigator.of(context).pushNamed('/news')
-                                  : null,
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
+                           return _FeatureCard(
+  data: tile,
+  onTap: () {
+    if (tile.title.contains('News')) {
+      Navigator.of(context).pushNamed('/news');
+    } else if (tile.title.toLowerCase().contains('request')) {
+      Navigator.of(context).pushNamed('/student_request');
+    }
+  },
+); // Closes the _FeatureCard widget statement cleanly inside itemBuilder
+      }, // Closes the itemBuilder function block parameter
+    ), // Closes the GridView.builder widget call frame completely
+
+    const SizedBox(height: 16),
+
                         Text(
                           'Hello $displayName!',
                           style: const TextStyle(
