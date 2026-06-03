@@ -7,6 +7,7 @@ class NewsPost {
     required this.details,
     required this.category,
     required this.author,
+    required this.authorId,
     required this.postedAt,
   });
 
@@ -15,6 +16,7 @@ class NewsPost {
   final String details;
   final String category;
   final String author;
+  final String authorId;
   final DateTime postedAt;
 
   String get timeLabel {
@@ -38,6 +40,7 @@ class NewsPost {
       'details': details,
       'category': category,
       'author': author,
+      'authorId': authorId,
       'postedAt': Timestamp.fromDate(postedAt),
     };
   }
@@ -60,6 +63,7 @@ class NewsPost {
       details: map['details'] ?? '',
       category: map['category'] ?? '',
       author: map['author'] ?? '',
+      authorId: map['authorId'] ?? '',
       postedAt: parsedPostedAt,
     );
   }
@@ -70,6 +74,7 @@ class NewsPost {
     String? details,
     String? category,
     String? author,
+    String? authorId,
     DateTime? postedAt,
   }) {
     return NewsPost(
@@ -78,6 +83,7 @@ class NewsPost {
       details: details ?? this.details,
       category: category ?? this.category,
       author: author ?? this.author,
+      authorId: authorId ?? this.authorId,
       postedAt: postedAt ?? this.postedAt,
     );
   }

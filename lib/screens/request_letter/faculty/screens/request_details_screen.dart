@@ -20,10 +20,15 @@ class RequestDetailsScreen extends StatefulWidget {
 
 class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   late Future<List<RequestHistory>> _timelineFuture;
+  late String _currentStatus;
+  late String _rejectionReason;
+  bool _actionCompleted = false;
 
   @override
   void initState() {
     super.initState();
+    _currentStatus = widget.request.status;
+    _rejectionReason = widget.request.rejectionReason ?? '';
     _timelineFuture = context.read<RequestProvider>().getTimeline(widget.request.requestId);
   }
 
@@ -38,7 +43,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
     const primaryBlue = Color(0xFF174EA6);
     final faculty = context.read<AuthProvider>().currentFaculty;
     if (faculty == null) return const SizedBox.shrink();
-    final isPending = widget.request.status == 'Pending' || widget.request.status.contains('Forwarded');
+    final isPending = (_currentStatus == 'Pending' || _currentStatus.contains('Forwarded')) && !_actionCompleted;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
@@ -82,12 +87,27 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                 const Icon(Icons.info_outline, color: Colors.white, size: 18),
                 const SizedBox(width: 8),
                 Text(
-                  'Status: ${widget.request.status}',
+                  'Status: $_currentStatus',
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
           ),
+          if (_currentStatus == 'Rejected' && _rejectionReason.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                'Reason: $_rejectionReason',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontStyle: FontStyle.italic),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -234,10 +254,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: () async {
-                await provider.reject(widget.request.requestId, faculty.facultyId, faculty.name);
-                if (context.mounted) Navigator.pop(context);
-              },
+              onPressed: () => _openRejectDialog(context, faculty, provider),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,
                 side: const BorderSide(color: Colors.red),
@@ -267,7 +284,13 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
             child: ElevatedButton(
               onPressed: () async {
                 await provider.approve(widget.request.requestId, faculty.facultyId, faculty.name);
-                if (context.mounted) Navigator.pop(context);
+                if (!mounted || !context.mounted) return;
+                setState(() {
+                  _currentStatus = 'Approved';
+                  _actionCompleted = true;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Request Approved')));
+                _refreshTimeline();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
@@ -290,9 +313,63 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
         requestId: widget.request.requestId,
         currentFaculty: currentFaculty,
         onForwarded: () {
-          _refreshTimeline();
+          if (mounted) {
+            setState(() {
+              _currentStatus = 'Forwarded by ${currentFaculty.name}';
+              _actionCompleted = true;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Request Forwarded')));
+            _refreshTimeline();
+          }
         },
       ),
+    );
+  }
+
+  void _openRejectDialog(BuildContext context, Faculty faculty, RequestProvider provider) {
+    final TextEditingController reasonController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Reject Request'),
+          content: TextField(
+            controller: reasonController,
+            decoration: const InputDecoration(
+              hintText: 'Enter reason for rejection',
+            ),
+            maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final reason = reasonController.text.trim();
+                if (reason.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a reason.')));
+                  return;
+                }
+                Navigator.pop(context); // close dialog
+                await provider.reject(widget.request.requestId, faculty.facultyId, faculty.name, reason);
+                if (!mounted || !context.mounted) return;
+                setState(() {
+                  _currentStatus = 'Rejected';
+                  _rejectionReason = reason;
+                  _actionCompleted = true;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Request Rejected')));
+                _refreshTimeline();
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              child: const Text('Reject'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

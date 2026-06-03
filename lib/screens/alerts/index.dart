@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/news_provider.dart';
+import '../../providers/student_provider.dart';
 
 class AlertsPage extends StatefulWidget {
   const AlertsPage({super.key});
@@ -130,6 +131,15 @@ class _AlertsPageState extends State<AlertsPage> {
                         ],
                       ),
                     ),
+                    if (item.authorId == context.read<StudentProvider>().currentStudent?.id)
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                        onPressed: () {
+                          if (item.id != null) {
+                            context.read<NewsProvider>().deleteNewsPost(item.id!);
+                          }
+                        },
+                      ),
                   ],
                 ),
               );

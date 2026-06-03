@@ -90,6 +90,7 @@ class FirebaseRepository implements IFacultyRepository, IRequestRepository {
         .get();
     return snapshot.docs
         .map((doc) => RequestLetter.fromMap({...doc.data(), 'requestId': doc.id}))
+        .where((r) => !r.status.contains('Approved') && !r.status.contains('Rejected'))
         .toList();
   }
 
@@ -119,13 +120,14 @@ class FirebaseRepository implements IFacultyRepository, IRequestRepository {
   }
 
   @override
-  Future<void> rejectRequest(String requestId, String facultyId, String facultyName) async {
+  Future<void> rejectRequest(String requestId, String facultyId, String facultyName, String reason) async {
     final batch = _firestore.batch();
     final requestRef = _firestore.collection('requests').doc(requestId);
     
     batch.update(requestRef, {
       'status': 'Rejected',
       'rejectedBy': facultyName,
+      'rejectionReason': reason,
       'rejectedDateTime': DateTime.now().toIso8601String(),
     });
 

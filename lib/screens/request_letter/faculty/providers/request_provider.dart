@@ -34,8 +34,8 @@ class RequestProvider with ChangeNotifier {
     await fetchRequests(facultyId);
   }
 
-  Future<void> reject(String requestId, String facultyId, String facultyName) async {
-    await ServiceConfig.requestRepo.rejectRequest(requestId, facultyId, facultyName);
+  Future<void> reject(String requestId, String facultyId, String facultyName, String reason) async {
+    await ServiceConfig.requestRepo.rejectRequest(requestId, facultyId, facultyName, reason);
     await fetchRequests(facultyId);
   }
 

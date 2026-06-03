@@ -13,8 +13,10 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _phoneController = TextEditingController();
+  final _deptController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _photoUrlController = TextEditingController();
   bool _isEditing = false;
 
   @override
@@ -23,16 +25,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final faculty = context.read<AuthProvider>().currentFaculty;
     if (faculty != null) {
       _phoneController.text = faculty.phone;
+      _deptController.text = faculty.department;
       _emailController.text = faculty.email;
       _passwordController.text = faculty.password;
+      _photoUrlController.text = faculty.profilePhoto ?? '';
     }
   }
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _deptController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _photoUrlController.dispose();
     super.dispose();
   }
 
@@ -57,8 +63,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (_isEditing) {
                 authProvider.updateProfile({
                   'phone': _phoneController.text,
+                  'department': _deptController.text,
                   'email': _emailController.text,
                   'password': _passwordController.text,
+                  'profilePhoto': _photoUrlController.text.isNotEmpty ? _photoUrlController.text : null,
                 });
               }
               setState(() => _isEditing = !_isEditing);
@@ -86,7 +94,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: primaryBlue.withValues(alpha: 0.1),
-                    child: const Icon(Icons.person, size: 60, color: primaryBlue),
+                    backgroundImage: faculty.profilePhoto != null && faculty.profilePhoto!.isNotEmpty
+                        ? NetworkImage(faculty.profilePhoto!)
+                        : null,
+                    child: faculty.profilePhoto == null || faculty.profilePhoto!.isEmpty
+                        ? const Icon(Icons.person, size: 60, color: primaryBlue)
+                        : null,
                   ),
                   if (_isEditing)
                     Positioned(
@@ -124,11 +137,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           _buildField('Faculty ID', TextEditingController(text: context.read<AuthProvider>().currentFaculty?.facultyId), false),
           const Divider(height: 32),
+          _buildField('Department Name', _deptController, _isEditing),
+          const Divider(height: 32),
           _buildField('Phone Number', _phoneController, _isEditing, keyboardType: TextInputType.phone),
           const Divider(height: 32),
           _buildField('Email Address', _emailController, _isEditing, keyboardType: TextInputType.emailAddress),
           const Divider(height: 32),
           _buildField('Password', _passwordController, _isEditing, obscureText: true),
+          if (_isEditing || _photoUrlController.text.isNotEmpty) ...[
+            const Divider(height: 32),
+            _buildField('Profile Photo URL', _photoUrlController, _isEditing),
+          ],
         ],
       ),
     );

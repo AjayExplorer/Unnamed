@@ -142,13 +142,27 @@ class _NewsPageState extends State<NewsPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Text(
-                      'Posted by ${post.author}',
-                      style: const TextStyle(
-                        color: Color(0xFF344054),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Posted by ${post.author}',
+                          style: const TextStyle(
+                            color: Color(0xFF344054),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (post.authorId == context.read<StudentProvider>().currentStudent?.id)
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                            onPressed: () {
+                              if (post.id != null) {
+                                newsProvider.deleteNewsPost(post.id!);
+                              }
+                            },
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -169,6 +183,7 @@ class _NewsPageState extends State<NewsPage> {
     final newsProvider = Provider.of<NewsProvider>(context, listen: false);
     final currentStudent = studentProvider.currentStudent;
     final author = currentStudent?.fullName ?? 'Anonymous';
+    final authorId = currentStudent?.id ?? '';
 
     showModalBottomSheet<void>(
       context: context,
@@ -224,6 +239,7 @@ class _NewsPageState extends State<NewsPage> {
                       details: details,
                       category: category,
                       author: author,
+                      authorId: authorId,
                       postedAt: DateTime.now(),
                     );
 

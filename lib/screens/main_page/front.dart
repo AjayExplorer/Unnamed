@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/news_provider.dart';
 import '../../providers/student_provider.dart';
-
+//import 'package:Unnamed/screens/request_letter/student/student_request.dart';
 class FrontPage extends StatefulWidget {
   const FrontPage({super.key});
 
@@ -116,13 +116,17 @@ class _FrontPageState extends State<FrontPage> {
                       itemBuilder: (context, index) {
                         final tile = _featureTiles[index];
                         return _FeatureCard(
-                          data: tile,
-                          onTap: tile.title.contains('News')
-                              ? () => Navigator.of(context).pushNamed('/news')
-                              : null,
-                        );
-                      },
-                    ),
+                         data: tile,
+  onTap: () {
+    if (tile.title.contains('News')) {
+      Navigator.of(context).pushNamed('/news');
+    } else if (tile.title.toLowerCase().contains('request')) {
+      Navigator.of(context).pushNamed('/student_request');
+    }
+  },
+); // Closes the _FeatureCard widget statement cleanly inside itemBuilder
+      }, // Closes the itemBuilder function block parameter
+    ), //
                     const SizedBox(height: 16),
                     Text(
                       'Hello $displayName!',
@@ -210,6 +214,10 @@ class _FrontPageState extends State<FrontPage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedTab,
         onTap: (value) {
+          if (value == 1) {
+            Navigator.of(context).pushNamed('/student_history');
+            return;
+          }
           if (value == 2) {
             Navigator.of(context).pushNamed('/alerts');
             return;

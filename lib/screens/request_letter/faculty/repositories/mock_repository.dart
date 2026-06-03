@@ -11,6 +11,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
       facultyId: 'F001',
       name: 'Dr. John Smith',
       designation: 'HOD CSE',
+      department: 'Computer Science',
       username: 'hod1',
       password: 'hod123',
       phone: '9876543210',
@@ -22,6 +23,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
       facultyId: 'F002',
       name: 'Prof. Sarah Wilson',
       designation: 'Assistant Professor',
+      department: 'Computer Science',
       username: 'teacher1',
       password: 'teacher123',
       phone: '9876543211',
@@ -33,6 +35,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
       facultyId: 'F003',
       name: 'Dr. Robert Brown',
       designation: 'Principal',
+      department: 'Administration',
       username: 'principal1',
       password: 'principal123',
       phone: '9876543212',
@@ -50,6 +53,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
       recipientFacultyId: 'F002',
       currentHandlerId: 'F002',
       currentHandlerName: 'Prof. Sarah Wilson',
+      subject: 'Leave Request',
       requestContent: 'I am requesting a leave for 3 days due to my brother\'s wedding.',
       submissionDate: DateTime.now().subtract(const Duration(days: 1)),
       status: 'Pending',
@@ -61,6 +65,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
       recipientFacultyId: 'F001',
       currentHandlerId: 'F001',
       currentHandlerName: 'Dr. John Smith',
+      subject: 'Event Permission',
       requestContent: 'Permission requested for organizing the annual cultural fest.',
       submissionDate: DateTime.now().subtract(const Duration(hours: 5)),
       status: 'Pending',
@@ -97,6 +102,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
         facultyId: _faculty[index].facultyId,
         name: _faculty[index].name,
         designation: _faculty[index].designation,
+        department: _faculty[index].department,
         username: _faculty[index].username,
         password: _faculty[index].password,
         phone: _faculty[index].phone,
@@ -132,6 +138,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
         facultyId: f.facultyId,
         name: f.name,
         designation: f.designation,
+        department: data['department'] ?? f.department,
         username: f.username,
         password: data['password'] ?? f.password,
         phone: data['phone'] ?? f.phone,
@@ -161,6 +168,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
         recipientFacultyId: r.recipientFacultyId,
         currentHandlerId: r.currentHandlerId,
         currentHandlerName: r.currentHandlerName,
+        subject: r.subject,
         requestContent: r.requestContent,
         submissionDate: r.submissionDate,
         status: 'Approved',
@@ -180,7 +188,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
   }
 
   @override
-  Future<void> rejectRequest(String requestId, String facultyId, String facultyName) async {
+  Future<void> rejectRequest(String requestId, String facultyId, String facultyName, String reason) async {
     final index = _requests.indexWhere((r) => r.requestId == requestId);
     if (index != -1) {
       final r = _requests[index];
@@ -191,10 +199,12 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
         recipientFacultyId: r.recipientFacultyId,
         currentHandlerId: r.currentHandlerId,
         currentHandlerName: r.currentHandlerName,
+        subject: r.subject,
         requestContent: r.requestContent,
         submissionDate: r.submissionDate,
         status: 'Rejected',
         rejectedBy: facultyName,
+        rejectionReason: reason,
         rejectedDateTime: DateTime.now(),
       );
 
@@ -221,6 +231,7 @@ class MockRepository implements IFacultyRepository, IRequestRepository {
         recipientFacultyId: r.recipientFacultyId,
         currentHandlerId: toId,
         currentHandlerName: toName,
+        subject: r.subject,
         requestContent: r.requestContent,
         submissionDate: r.submissionDate,
         status: nextStatus,

@@ -288,7 +288,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               const SizedBox(height: 22),
-                              if (_selectedRole == 'Faculty')
+                              if (_selectedRole == 'Student')
                                 Center(
                                   child: Wrap(
                                     crossAxisAlignment:
@@ -305,7 +305,7 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                       TextButton(
                                         onPressed: () {
-                                          Navigator.of(context).pushNamed('/faculty_register');
+                                          Navigator.of(context).pushNamed('/register');
                                         },
                                         style: TextButton.styleFrom(
                                           foregroundColor: accentBlue,

@@ -20,7 +20,8 @@ import 'screens/admin/screens/admin_dashboard_screen.dart';
 import 'screens/student_verification/student_verification.dart';
 import 'providers/news_provider.dart';
 import 'providers/student_provider.dart';
-
+import 'screens/request_letter/student/student_request.dart';
+import 'screens/request_letter/student/student_history.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -99,6 +100,8 @@ class MyApp extends StatelessWidget {
         '/faculty_register': (context) => const FacultyRegistrationRequestScreen(),
         '/admin_dashboard': (context) => const AdminDashboardScreen(),
         '/verify': (context) => const StudentVerification(),
+        '/student_request':(context) => const StudentRequestPage(),
+        '/student_history': (context) => const StudentHistoryPage(),
       },
     );
   }

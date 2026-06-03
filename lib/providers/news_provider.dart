@@ -45,4 +45,21 @@ class NewsProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> deleteNewsPost(String postId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _newsService.deleteNewsPost(postId);
+      await loadNewsPosts();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to delete news: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

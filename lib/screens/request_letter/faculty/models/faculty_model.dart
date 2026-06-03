@@ -5,6 +5,7 @@ class Faculty {
   final String facultyId;
   final String name;
   final String designation;
+  final String department;
   final String username;
   final String password;
   final String? profilePhoto;
@@ -17,6 +18,7 @@ class Faculty {
     required this.facultyId,
     required this.name,
     required this.designation,
+    required this.department,
     required this.username,
     required this.password,
     this.profilePhoto,
@@ -31,6 +33,7 @@ class Faculty {
       'facultyId': facultyId,
       'name': name,
       'designation': designation,
+      'department': department,
       'username': username,
       'password': password,
       'profilePhoto': profilePhoto,
@@ -46,6 +49,7 @@ class Faculty {
       facultyId: map['facultyId'] ?? '',
       name: map['name'] ?? '',
       designation: map['designation'] ?? '',
+      department: map['department'] ?? '',
       username: map['username'] ?? '',
       password: map['password'] ?? '',
       profilePhoto: map['profilePhoto'],

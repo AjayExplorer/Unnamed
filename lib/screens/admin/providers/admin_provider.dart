@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import '../models/admin_model.dart';
 import '../repositories/admin_repository.dart';
-import '../../request_letter/faculty/models/faculty_registration_request.dart';
+
+import '../../request_letter/faculty/models/faculty_model.dart';
 
 class AdminProvider with ChangeNotifier {
   final AdminRepository _repository = AdminRepository();
 
   Admin? _currentAdmin;
-  List<FacultyRegistrationRequest> _pendingRequests = [];
+
+  List<Faculty> _allFaculty = [];
+  List<Map<String, dynamic>> _allAlerts = [];
   int _facultyCount = 0;
   bool _isLoading = false;
   String? _errorMessage;
 
   Admin? get currentAdmin => _currentAdmin;
-  List<FacultyRegistrationRequest> get pendingRequests => _pendingRequests;
+
+  List<Faculty> get allFaculty => _allFaculty;
+  List<Map<String, dynamic>> get allAlerts => _allAlerts;
   int get facultyCount => _facultyCount;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -49,8 +54,10 @@ class AdminProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _pendingRequests = await _repository.getPendingFacultyRegistrations();
+
       _facultyCount = await _repository.getFacultyCount();
+      await loadAllFaculty();
+      await loadAllAlerts();
     } catch (e) {
       _errorMessage = 'Unable to load dashboard: $e';
     }
@@ -59,39 +66,117 @@ class AdminProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> approveRequest(FacultyRegistrationRequest request) async {
-    if (_currentAdmin == null) return;
+
+
+  /// Add new faculty
+  Future<bool> addFaculty(Faculty faculty) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      await _repository.approveFacultyRegistration(request, _currentAdmin!.adminId, _currentAdmin!.name);
-      await loadDashboard();
-    } catch (e) {
-      _errorMessage = 'Failed to approve request: $e';
+      await _repository.addFaculty(faculty);
+      _facultyCount++;
+      await loadAllFaculty();
       _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to add faculty: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Update existing faculty
+  Future<bool> updateFaculty(Faculty faculty) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.updateFaculty(faculty);
+      await loadAllFaculty();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to update faculty: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Delete faculty
+  Future<bool> deleteFaculty(String facultyId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.deleteFaculty(facultyId);
+      _facultyCount = (_facultyCount - 1).clamp(0, double.infinity).toInt();
+      await loadAllFaculty();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to delete faculty: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Load all faculty members
+  Future<void> loadAllFaculty() async {
+    try {
+      _allFaculty = await _repository.getAllFaculty();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to load faculty list: $e';
       notifyListeners();
     }
   }
 
-  Future<void> rejectRequest(String requestId, String rejectionReason) async {
-    if (_currentAdmin == null) return;
+  /// Load all alerts
+  Future<void> loadAllAlerts() async {
+    try {
+      _allAlerts = await _repository.getAllAlerts();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to load alerts: $e';
+      notifyListeners();
+    }
+  }
+
+  /// Delete an alert
+  Future<bool> deleteAlert(String alertId) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      await _repository.rejectFacultyRegistration(requestId, _currentAdmin!.adminId, _currentAdmin!.name, rejectionReason);
-      await loadDashboard();
-    } catch (e) {
-      _errorMessage = 'Failed to reject request: $e';
+      await _repository.deleteAlert(alertId);
+      _allAlerts.removeWhere((alert) => alert['id'] == alertId);
       _isLoading = false;
       notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to delete alert: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 
   void logout() {
     _currentAdmin = null;
-    _pendingRequests = [];
+
+    _allFaculty = [];
+    _allAlerts = [];
     _facultyCount = 0;
     _errorMessage = null;
     _isLoading = false;

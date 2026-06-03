@@ -132,7 +132,7 @@ class _ForwardDialogState extends State<ForwardDialog> {
 
   void _forwardTo(Faculty target) async {
     final provider = context.read<RequestProvider>();
-    final nextStatus = 'Forwarded to ${target.role.toString().split('.').last.toUpperCase()}';
+    final nextStatus = 'Forwarded by ${widget.currentFaculty.name}';
     
     await provider.forward(
       widget.requestId,

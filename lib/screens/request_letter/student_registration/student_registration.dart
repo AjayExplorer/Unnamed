@@ -256,7 +256,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
       _confirmPasswordController.text,
     );
 
-    if (!mounted) return;
+    if (!mounted || !context.mounted) return;
 
     setState(() => _isRegistering = false);
 
@@ -278,7 +278,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
 
       // Navigate back after a short delay
       await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
+      if (mounted && context.mounted) {
         Navigator.of(context).pop();
       }
     } else {
