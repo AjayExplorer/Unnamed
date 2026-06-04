@@ -40,50 +40,53 @@ class _FacultyRegistrationRequestScreenState extends State<FacultyRegistrationRe
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Consumer<FacultyRegistrationProvider>(
-            builder: (context, provider, _) {
-              return Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildField('Name', _nameController, 'Enter full name'),
-                    const SizedBox(height: 12),
-                    _buildField('Username', _usernameController, 'Choose a username'),
-                    const SizedBox(height: 12),
-                    _buildField('Email', _emailController, 'Enter email address', keyboardType: TextInputType.emailAddress),
-                    const SizedBox(height: 12),
-                    _buildField('Phone', _phoneController, 'Enter phone number', keyboardType: TextInputType.phone),
-                    const SizedBox(height: 12),
-                    _buildDropdown(),
-                    const SizedBox(height: 12),
-                    _buildField('Password', _passwordController, 'Choose a password', obscureText: true),
-                    const SizedBox(height: 12),
-                    _buildField('Confirm Password', _confirmPasswordController, 'Confirm password', obscureText: true),
-                    const SizedBox(height: 20),
-                    if (provider.errorMessage != null)
-                      Text(provider.errorMessage!, style: const TextStyle(color: Colors.red)),
-                    if (provider.successMessage != null)
-                      Text(provider.successMessage!, style: const TextStyle(color: Colors.green)),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: provider.isSubmitting ? null : () => _submit(context),
-                        style: ElevatedButton.styleFrom(backgroundColor: primaryBlue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        child: provider.isSubmitting
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('Submit Request', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Consumer<FacultyRegistrationProvider>(
+              builder: (context, provider, _) {
+                return Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildField('Name', _nameController, 'Enter full name'),
+                      const SizedBox(height: 12),
+                      _buildField('Username', _usernameController, 'Choose a username'),
+                      const SizedBox(height: 12),
+                      _buildField('Email', _emailController, 'Enter email address', keyboardType: TextInputType.emailAddress),
+                      const SizedBox(height: 12),
+                      _buildField('Phone', _phoneController, 'Enter phone number', keyboardType: TextInputType.phone),
+                      const SizedBox(height: 12),
+                      _buildDropdown(),
+                      const SizedBox(height: 12),
+                      _buildField('Password', _passwordController, 'Choose a password', obscureText: true),
+                      const SizedBox(height: 12),
+                      _buildField('Confirm Password', _confirmPasswordController, 'Confirm password', obscureText: true),
+                      const SizedBox(height: 20),
+                      if (provider.errorMessage != null)
+                        Text(provider.errorMessage!, style: const TextStyle(color: Colors.red)),
+                      if (provider.successMessage != null)
+                        Text(provider.successMessage!, style: const TextStyle(color: Colors.green)),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: provider.isSubmitting ? null : () => _submit(context),
+                          style: ElevatedButton.styleFrom(backgroundColor: primaryBlue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          child: provider.isSubmitting
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : const Text('Submit Request', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -125,7 +128,7 @@ class _FacultyRegistrationRequestScreenState extends State<FacultyRegistrationRe
         const Text('Role', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          initialValue: _selectedRole,
+          value: _selectedRole,
           items: const [
             DropdownMenuItem(value: 'teacher', child: Text('Teacher')),
             DropdownMenuItem(value: 'hod', child: Text('HOD')),

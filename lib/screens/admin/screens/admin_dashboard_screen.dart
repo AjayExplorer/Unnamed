@@ -49,18 +49,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             tooltip: 'Logout',
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: primaryBlue,
-          labelColor: primaryBlue,
-          unselectedLabelColor: Colors.grey,
-          tabs: const [
-            Tab(text: 'Dashboard'),
-            Tab(text: 'Add Faculty'),
-            Tab(text: 'Faculty'),
-            Tab(text: 'Alerts'),
-          ],
-        ),
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            indicatorColor: primaryBlue,
+            labelColor: primaryBlue,
+            unselectedLabelColor: Colors.grey,
+            tabs: const [
+              Tab(text: 'Dashboard'),
+              Tab(text: 'Add Faculty'),
+              Tab(text: 'Faculty'),
+              Tab(text: 'Alerts'),
+            ],
+          ),
       ),
       body: TabBarView(
         controller: _tabController,
@@ -78,22 +79,35 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     const primaryBlue = Color(0xFF174EA6);
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 600;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildMetricCard('Faculty', provider.facultyCount.toString(), primaryBlue),
-              const SizedBox(width: 12),
-              _buildMetricCard('Alerts', provider.allAlerts.length.toString(), primaryBlue),
+              isNarrow
+                  ? Column(
+                      children: [
+                        _buildMetricCard('Faculty', provider.facultyCount.toString(), primaryBlue),
+                        const SizedBox(height: 12),
+                        _buildMetricCard('Alerts', provider.allAlerts.length.toString(), primaryBlue),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        _buildMetricCard('Faculty', provider.facultyCount.toString(), primaryBlue),
+                        const SizedBox(width: 12),
+                        _buildMetricCard('Alerts', provider.allAlerts.length.toString(), primaryBlue),
+                      ],
+                    ),
+              const SizedBox(height: 24),
+              const Text('Quick Stats', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 12),
+              Text('Total Faculty Members: ${provider.allFaculty.length}'),
+              Text('Active Alerts: ${provider.allAlerts.length}'),
             ],
-          ),
-          const SizedBox(height: 24),
-          const Text('Quick Stats', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 12),
-          Text('Total Faculty Members: ${provider.allFaculty.length}'),
-          Text('Active Alerts: ${provider.allAlerts.length}'),
-        ],
+          );
+        },
       ),
     );
   }
@@ -656,102 +670,106 @@ class _EditFacultyDialogState extends State<_EditFacultyDialog> {
     const primaryBlue = Color(0xFF174EA6);
 
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Edit Faculty', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Faculty Name',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Faculty Name',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _usernameController,
+                              decoration: InputDecoration(
+                labelText: 'Username',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _emailController,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _phoneController,
+              decoration: InputDecoration(
+                labelText: 'Phone Number',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _selectedRole,
+              items: const [
+                DropdownMenuItem(value: 'teacher', child: Text('Teacher')),
+                DropdownMenuItem(value: 'hod', child: Text('HOD')),
+                DropdownMenuItem(value: 'principal', child: Text('Principal')),
+              ],
+              onChanged: (value) => setState(() => _selectedRole = value ?? 'teacher'),
+              decoration: InputDecoration(
+                labelText: 'Role',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _designationController,
+              decoration: InputDecoration(
+                labelText: 'Designation',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _departmentController,
+              decoration: InputDecoration(
+                labelText: 'Department',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: _isSubmitting ? null : _submitForm,
+                  style: ElevatedButton.styleFrom(backgroundColor: primaryBlue),
+                  child: _isSubmitting
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Update'),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _phoneController,
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButton<String>(
-                value: _selectedRole,
-                items: const [
-                  DropdownMenuItem(value: 'teacher', child: Text('Teacher')),
-                  DropdownMenuItem(value: 'hod', child: Text('HOD')),
-                  DropdownMenuItem(value: 'principal', child: Text('Principal')),
-                ],
-                onChanged: (value) => setState(() => _selectedRole = value ?? 'teacher'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _designationController,
-                decoration: InputDecoration(
-                  labelText: 'Designation',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _departmentController,
-                decoration: InputDecoration(
-                  labelText: 'Department',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _isSubmitting ? null : _submitForm,
-                    style: ElevatedButton.styleFrom(backgroundColor: primaryBlue),
-                    child: _isSubmitting ? const CircularProgressIndicator(color: Colors.white) : const Text('Update'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
+
   }
 }
 
