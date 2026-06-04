@@ -270,22 +270,11 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                                               ],
                                             ),
                                             const SizedBox(height: 4),
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    designation,
-                                                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: textGrey),
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  '• $dept',
-                                                  style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 11, color: Color(0xFF98A2B3)),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ],
+                                            Text(
+                                              '$designation • $dept',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: textGrey),
                                             ),
                                           ],
                                         ),

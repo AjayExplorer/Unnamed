@@ -39,8 +39,8 @@ class _ForwardDialogState extends State<ForwardDialog> {
     final availabilityProvider = context.watch<AvailabilityProvider>();
     final allFaculty = availabilityProvider.allFaculty.where((f) {
       // Logic for forwarding:
-      // Hide self, hide faculty on leave
-      return f.facultyId != widget.currentFaculty.facultyId && f.availabilityStatus == 'Present';
+      // Hide self, allow forwarding even if on leave
+      return f.facultyId != widget.currentFaculty.facultyId;
     }).toList();
 
     _filteredFaculty = allFaculty.where((f) {
@@ -55,7 +55,10 @@ class _ForwardDialogState extends State<ForwardDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
         padding: const EdgeInsets.all(24),
-        constraints: const BoxConstraints(maxHeight: 500, maxWidth: 400),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+          maxWidth: 400,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

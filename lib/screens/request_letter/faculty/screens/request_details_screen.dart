@@ -250,58 +250,82 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
         color: Colors.white,
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => _openRejectDialog(context, faculty, provider),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Reject', style: TextStyle(fontWeight: FontWeight.w700)),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 360;
+
+          final rejectButton = OutlinedButton(
+            onPressed: () => _openRejectDialog(context, faculty, provider),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: const BorderSide(color: Colors.red),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-          ),
-          const SizedBox(width: 12),
-          if (canForward) ...[
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => _openForwardDialog(context, faculty),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: primary,
-                  side: BorderSide(color: primary),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text('Forward', style: TextStyle(fontWeight: FontWeight.w700)),
-              ),
+            child: const Text('Reject', style: TextStyle(fontWeight: FontWeight.w700)),
+          );
+
+          final forwardButton = canForward
+              ? OutlinedButton(
+                  onPressed: () => _openForwardDialog(context, faculty),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primary,
+                    side: BorderSide(color: primary),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Forward', style: TextStyle(fontWeight: FontWeight.w700)),
+                )
+              : const SizedBox.shrink();
+
+          final approveButton = ElevatedButton(
+            onPressed: () async {
+              await provider.approve(widget.request.requestId, faculty.facultyId, faculty.name);
+              if (!mounted || !context.mounted) return;
+              setState(() {
+                _currentStatus = 'Approved';
+                _actionCompleted = true;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Request Approved')));
+              _refreshTimeline();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            const SizedBox(width: 12),
-          ],
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () async {
-                await provider.approve(widget.request.requestId, faculty.facultyId, faculty.name);
-                if (!mounted || !context.mounted) return;
-                setState(() {
-                  _currentStatus = 'Approved';
-                  _actionCompleted = true;
-                });
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Request Approved')));
-                _refreshTimeline();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Approve', style: TextStyle(fontWeight: FontWeight.w700)),
-            ),
-          ),
-        ],
+            child: const Text('Approve', style: TextStyle(fontWeight: FontWeight.w700)),
+          );
+
+          if (isNarrow) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                rejectButton,
+                if (canForward) ...[
+                  const SizedBox(height: 10),
+                  forwardButton,
+                ],
+                const SizedBox(height: 10),
+                approveButton,
+              ],
+            );
+          } else {
+            return Row(
+              children: [
+                Expanded(child: rejectButton),
+                const SizedBox(width: 12),
+                if (canForward) ...[
+                  Expanded(child: forwardButton),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(child: approveButton),
+              ],
+            );
+          }
+        },
       ),
     );
   }

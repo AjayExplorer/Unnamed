@@ -102,34 +102,44 @@ class _FrontPageState extends State<FrontPage> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
                   children: [
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _featureTiles.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        const double spacing = 10.0;
+                        final double itemWidth = (constraints.maxWidth - (spacing * 2)) / 3;
+                        const double itemHeight = 100.0;
+                        final double childAspectRatio = itemWidth / itemHeight;
+
+                        return GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _featureTiles.length,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 3,
-                            mainAxisSpacing: 10,
-                            crossAxisSpacing: 10,
-                            childAspectRatio: 0.88,
+                            mainAxisSpacing: spacing,
+                            crossAxisSpacing: spacing,
+                            childAspectRatio: childAspectRatio,
                           ),
-                      itemBuilder: (context, index) {
-                        final tile = _featureTiles[index];
-                        return _FeatureCard(
-                         data: tile,
-  onTap: () {
-    if (tile.title.contains('News')) {
-      Navigator.of(context).pushNamed('/news');
-    } else if (tile.title.toLowerCase().contains('request')) {
-      Navigator.of(context).pushNamed('/student_request');
-    }
-  },
-); // Closes the _FeatureCard widget statement cleanly inside itemBuilder
-      }, // Closes the itemBuilder function block parameter
-    ), //
+                          itemBuilder: (context, index) {
+                            final tile = _featureTiles[index];
+                            return _FeatureCard(
+                              data: tile,
+                              onTap: () {
+                                if (tile.title.contains('News')) {
+                                  Navigator.of(context).pushNamed('/news');
+                                } else if (tile.title.toLowerCase().contains('request')) {
+                                  Navigator.of(context).pushNamed('/student_request');
+                                }
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'Hello $displayName!',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 34,
                         fontWeight: FontWeight.w700,
@@ -138,18 +148,7 @@ class _FrontPageState extends State<FrontPage> {
                         height: 1,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Latest Activities',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF101828),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildActivityCard(),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
                     const Text(
                       'Featured News',
                       style: TextStyle(
@@ -287,6 +286,8 @@ class _FrontPageState extends State<FrontPage> {
           Expanded(
             child: Text(
               'Hello\n$displayName!',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFF101828),
                 fontWeight: FontWeight.w700,
@@ -375,74 +376,7 @@ class _FrontPageState extends State<FrontPage> {
     return parts.first;
   }
 
-  Widget _buildActivityCard() {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE4E7EC)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 8,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [Color(0xFF2F6BDA), Color(0xFF174EA6)],
-              ),
-            ),
-            child: const Icon(Icons.person_rounded, color: Colors.white),
-          ),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Salare noor! Naila Sarsh!',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: Color(0xFF101828),
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Department of Merrio casior',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                    color: Color(0xFF667085),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              gradient: const LinearGradient(
-                colors: [Color(0xFFEAECEF), Color(0xFFD6DCE3)],
-              ),
-            ),
-            child: const Icon(Icons.chevron_right, color: Color(0xFF344054)),
-          ),
-        ],
-      ),
-    );
-  }
+
 }
 
 class _FeatureCard extends StatelessWidget {
@@ -459,22 +393,29 @@ class _FeatureCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(data.icon, color: data.foreground, size: 30),
-            const SizedBox(height: 6),
-            Text(
-              data.title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: data.foreground,
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                height: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(data.icon, color: data.foreground, size: 28),
+              const SizedBox(height: 4),
+              Flexible(
+                child: Text(
+                  data.title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: data.foreground,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

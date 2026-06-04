@@ -89,6 +89,18 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF174EA6)),
       ),
+      builder: (context, child) {
+        final mediaQueryData = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQueryData.copyWith(
+            textScaler: mediaQueryData.textScaler.clamp(
+              minScaleFactor: 0.8,
+              maxScaleFactor: 1.25,
+            ),
+          ),
+          child: child!,
+        );
+      },
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginPage(),

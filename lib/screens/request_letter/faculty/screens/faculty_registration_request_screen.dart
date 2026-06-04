@@ -128,7 +128,7 @@ class _FacultyRegistrationRequestScreenState extends State<FacultyRegistrationRe
         const Text('Role', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: _selectedRole,
+          initialValue: _selectedRole,
           items: const [
             DropdownMenuItem(value: 'teacher', child: Text('Teacher')),
             DropdownMenuItem(value: 'hod', child: Text('HOD')),

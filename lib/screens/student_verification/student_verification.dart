@@ -70,260 +70,266 @@ class _StudentVerificationState extends State<StudentVerification> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x1A0F172A),
-                        blurRadius: 24,
-                        offset: Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Verification Mode Selection
-                        _buildLabel('Verification Mode'),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE4E7EC)),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            children: [
-                              _buildModeOption(
-                                'Verify Credentials',
-                                'Verify student with admission number and password',
-                                0,
-                              ),
-                              const SizedBox(height: 8),
-                              _buildModeOption(
-                                'Cross-Check Details',
-                                'Verify student by matching all details',
-                                1,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Common Fields
-                        _buildLabel('Admission Number'),
-                        _buildInputField(
-                          controller: _admissionController,
-                          hintText: 'KGR23CS001',
-                          validator: (v) =>
-                              v!.isEmpty ? 'Please enter admission number' : null,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Mode 0: Credentials Verification
-                        if (_verificationMode == 0) ...[
-                          _buildLabel('Password'),
-                          _buildInputField(
-                            controller: _passwordController,
-                            hintText: 'Enter password',
-                            obscureText: _obscurePassword,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: textGrey,
-                              ),
-                              onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
-                            ),
-                            validator: (v) =>
-                                v!.isEmpty ? 'Please enter password' : null,
-                          ),
-                        ]
-                        // Mode 1: Cross-Check Details
-                        else ...[
-                          _buildLabel('Full Name'),
-                          _buildInputField(
-                            controller: _nameController,
-                            hintText: 'Your name',
-                            keyboardType: TextInputType.name,
-                            validator: (v) =>
-                                v!.isEmpty ? 'Please enter your name' : null,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildLabel('Phone Number'),
-                          _buildInputField(
-                            controller: _phoneController,
-                            hintText: '+91 9876543210',
-                            keyboardType: TextInputType.phone,
-                            validator: (v) =>
-                                v!.isEmpty ? 'Please enter phone number' : null,
+                // Core Form Card Container constrained for large screen sizes
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 520),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1A0F172A),
+                            blurRadius: 24,
+                            offset: Offset(0, 10),
                           ),
                         ],
-                        const SizedBox(height: 24),
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Verification Mode Selection
+                            _buildLabel('Verification Mode'),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color(0xFFE4E7EC)),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                children: [
+                                  _buildModeOption(
+                                    'Verify Credentials',
+                                    'Verify student with admission number and password',
+                                    0,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildModeOption(
+                                    'Cross-Check Details',
+                                    'Verify student by matching all details',
+                                    1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
 
-                        // Verify Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: Consumer<StudentProvider>(
-                            builder: (context, studentProvider, _) {
-                              return ElevatedButton(
-                                onPressed: studentProvider.isLoading
-                                    ? null
-                                    : () =>
-                                        _handleVerification(context, studentProvider),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF174EA6),
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(999),
+                            // Common Fields
+                            _buildLabel('Admission Number'),
+                            _buildInputField(
+                              controller: _admissionController,
+                              hintText: 'KGR23CS001',
+                              validator: (v) =>
+                                  v!.isEmpty ? 'Please enter admission number' : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Mode 0: Credentials Verification
+                            if (_verificationMode == 0) ...[
+                              _buildLabel('Password'),
+                              _buildInputField(
+                                controller: _passwordController,
+                                hintText: 'Enter password',
+                                obscureText: _obscurePassword,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    color: textGrey,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword,
                                   ),
                                 ),
-                                child: studentProvider.isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Text(
-                                        _verificationMode == 0
-                                            ? 'Verify Credentials'
-                                            : 'Cross-Check Details',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 16),
+                                validator: (v) =>
+                                    v!.isEmpty ? 'Please enter password' : null,
+                              ),
+                            ]
+                            // Mode 1: Cross-Check Details
+                            else ...[
+                              _buildLabel('Full Name'),
+                              _buildInputField(
+                                controller: _nameController,
+                                hintText: 'Your name',
+                                keyboardType: TextInputType.name,
+                                validator: (v) =>
+                                    v!.isEmpty ? 'Please enter your name' : null,
+                              ),
+                              const SizedBox(height: 16),
+                              _buildLabel('Phone Number'),
+                              _buildInputField(
+                                controller: _phoneController,
+                                hintText: '+91 9876543210',
+                                keyboardType: TextInputType.phone,
+                                validator: (v) =>
+                                    v!.isEmpty ? 'Please enter phone number' : null,
+                              ),
+                            ],
+                            const SizedBox(height: 24),
 
-                        // Info Messages
-                        Consumer<StudentProvider>(
-                          builder: (context, studentProvider, _) {
-                            if (studentProvider.successMessage != null) {
-                              return Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.withValues(alpha: 0.1),
-                                  border: Border.all(color: Colors.green),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.check_circle,
-                                        color: Colors.green),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        studentProvider.successMessage ?? '',
-                                        style: const TextStyle(
-                                          color: Colors.green,
-                                          fontSize: 12,
-                                        ),
+                            // Verify Button
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: Consumer<StudentProvider>(
+                                builder: (context, studentProvider, _) {
+                                  return ElevatedButton(
+                                    onPressed: studentProvider.isLoading
+                                        ? null
+                                        : () =>
+                                            _handleVerification(context, studentProvider),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF174EA6),
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(999),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              );
-                            }
-
-                            if (studentProvider.errorMessage != null) {
-                              return Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.1),
-                                  border: Border.all(color: Colors.red),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.error_outline,
-                                        color: Colors.red),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        studentProvider.errorMessage ?? '',
-                                        style: const TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-
-                            return const SizedBox.shrink();
-                          },
-                        ),
-
-                        // Display verified student details
-                        Consumer<StudentProvider>(
-                          builder: (context, studentProvider, _) {
-                            if (studentProvider.currentStudent != null) {
-                              final student = studentProvider.currentStudent!;
-                              return Column(
-                                children: [
-                                  const SizedBox(height: 16),
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF9FAFB),
-                                      border: Border.all(
-                                        color: const Color(0xFFE4E7EC),
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Student Details',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
+                                    child: studentProvider.isLoading
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : Text(
+                                            _verificationMode == 0
+                                                ? 'Verify Credentials'
+                                                : 'Cross-Check Details',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        _buildDetailRow('Name:', student.fullName),
-                                        _buildDetailRow(
-                                          'Admission Number:',
-                                          student.admissionNumber,
-                                        ),
-                                        _buildDetailRow(
-                                          'Phone Number:',
-                                          student.phoneNumber,
-                                        ),
-                                        _buildDetailRow(
-                                          'Registered On:',
-                                          '${student.registrationDate.day}/${student.registrationDate.month}/${student.registrationDate.year}',
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Info Messages
+                            Consumer<StudentProvider>(
+                              builder: (context, studentProvider, _) {
+                                if (studentProvider.successMessage != null) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withValues(alpha: 0.1),
+                                      border: Border.all(color: Colors.green),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle,
+                                            color: Colors.green),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            studentProvider.successMessage ?? '',
+                                            style: const TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 12,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          },
+                                  );
+                                }
+
+                                if (studentProvider.errorMessage != null) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withValues(alpha: 0.1),
+                                      border: Border.all(color: Colors.red),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.error_outline,
+                                            color: Colors.red),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            studentProvider.errorMessage ?? '',
+                                            style: const TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                return const SizedBox.shrink();
+                              },
+                            ),
+
+                            // Display verified student details
+                            Consumer<StudentProvider>(
+                              builder: (context, studentProvider, _) {
+                                if (studentProvider.currentStudent != null) {
+                                  final student = studentProvider.currentStudent!;
+                                  return Column(
+                                    children: [
+                                      const SizedBox(height: 16),
+                                      Container(
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF9FAFB),
+                                          border: Border.all(
+                                            color: const Color(0xFFE4E7EC),
+                                          ),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Student Details',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            _buildDetailRow('Name:', student.fullName),
+                                            _buildDetailRow(
+                                              'Admission Number:',
+                                              student.admissionNumber,
+                                            ),
+                                            _buildDetailRow(
+                                              'Phone Number:',
+                                              student.phoneNumber,
+                                            ),
+                                            _buildDetailRow(
+                                              'Registered On:',
+                                              '${student.registrationDate.day}/${student.registrationDate.month}/${student.registrationDate.year}',
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

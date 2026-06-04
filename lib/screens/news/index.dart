@@ -193,82 +193,88 @@ class _NewsPageState extends State<NewsPage> {
         final sheetMessenger = ScaffoldMessenger.of(sheetContext);
         final sheetNavigator = Navigator.of(sheetContext);
 
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 8,
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Create News Post',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 8,
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
               ),
-              const SizedBox(height: 12),
-              _inputField('Title', _titleController),
-              const SizedBox(height: 10),
-              _inputField('Category', _categoryController),
-              const SizedBox(height: 10),
-              _inputField('Details', _detailsController, maxLines: 4),
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final title = _titleController.text.trim();
-                    final details = _detailsController.text.trim();
-                    final category = _categoryController.text.trim();
-
-                    if (title.isEmpty || details.isEmpty || category.isEmpty) {
-                      sheetMessenger.showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Please fill title, category and details',
-                          ),
-                        ),
-                      );
-                      return;
-                    }
-
-                    final newPost = NewsPost(
-                      title: title,
-                      details: details,
-                      category: category,
-                      author: author,
-                      authorId: authorId,
-                      postedAt: DateTime.now(),
-                    );
-
-                    final success = await newsProvider.addNewsPost(newPost);
-
-                    if (!mounted) return;
-
-                    if (success) {
-                      sheetNavigator.pop();
-                      sheetMessenger.showSnackBar(
-                        const SnackBar(content: Text('News posted to the app')),
-                      );
-                    } else {
-                      sheetMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text(newsProvider.errorMessage ?? 'Failed to post news'),
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF174EA6),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(48),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Create News Post',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
                   ),
-                  child: const Text('Post News'),
-                ),
+                  const SizedBox(height: 12),
+                  _inputField('Title', _titleController),
+                  const SizedBox(height: 10),
+                  _inputField('Category', _categoryController),
+                  const SizedBox(height: 10),
+                  _inputField('Details', _detailsController, maxLines: 4),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final title = _titleController.text.trim();
+                        final details = _detailsController.text.trim();
+                        final category = _categoryController.text.trim();
+
+                        if (title.isEmpty || details.isEmpty || category.isEmpty) {
+                          sheetMessenger.showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Please fill title, category and details',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        final newPost = NewsPost(
+                          title: title,
+                          details: details,
+                          category: category,
+                          author: author,
+                          authorId: authorId,
+                          postedAt: DateTime.now(),
+                        );
+
+                        final success = await newsProvider.addNewsPost(newPost);
+
+                        if (!mounted) return;
+
+                        if (success) {
+                          sheetNavigator.pop();
+                          sheetMessenger.showSnackBar(
+                            const SnackBar(content: Text('News posted to the app')),
+                          );
+                        } else {
+                          sheetMessenger.showSnackBar(
+                            SnackBar(
+                              content: Text(newsProvider.errorMessage ?? 'Failed to post news'),
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF174EA6),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(48),
+                      ),
+                      child: const Text('Post News'),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },

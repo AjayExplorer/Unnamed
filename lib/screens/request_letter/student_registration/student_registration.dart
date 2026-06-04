@@ -79,154 +79,159 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                 ),
                 const SizedBox(height: 20),
 
-                // Core Form Card Container
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x1A0F172A),
-                        blurRadius: 24,
-                        offset: Offset(0, 10),
+                // Core Form Card Container constrained for large screen sizes
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 520),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1A0F172A),
+                            blurRadius: 24,
+                            offset: Offset(0, 10),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 1. Full Name
-                        _buildLabel('Full Name'),
-                        _buildInputField(
-                          controller: _nameController,
-                          hintText: 'Your name',
-                          keyboardType: TextInputType.name,
-                          validator: (v) => v!.isEmpty ? 'Please enter your name' : null,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 2. Phone Number
-                        _buildLabel('Phone Number'),
-                        _buildInputField(
-                          controller: _phoneController,
-                          hintText: '+91 9876543210',
-                          keyboardType: TextInputType.phone,
-                          validator: (v) => v!.isEmpty ? 'Please enter phone number' : null,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 3. Admission Number
-                        _buildLabel('Admission Number'),
-                        _buildInputField(
-                          controller: _admissionController,
-                          hintText: 'KGR23CS000',
-                          validator: (v) => v!.isEmpty ? 'Please enter admission number' : null,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 4. Password
-                        _buildLabel('Password'),
-                        _buildInputField(
-                          controller: _passwordController,
-                          hintText: 'Password',
-                          obscureText: _obscurePassword,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                              color: textGrey,
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 1. Full Name
+                            _buildLabel('Full Name'),
+                            _buildInputField(
+                              controller: _nameController,
+                              hintText: 'Your name',
+                              keyboardType: TextInputType.name,
+                              validator: (v) => v!.isEmpty ? 'Please enter your name' : null,
                             ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                          ),
-                          validator: (v) => v!.length < 6 ? 'Password must be 6+ characters' : null,
-                        ),
-                        const SizedBox(height: 16),
+                            const SizedBox(height: 16),
 
-                        // 5. Confirm Password
-                        _buildLabel('Confirm Password'),
-                        _buildInputField(
-                          controller: _confirmPasswordController,
-                          hintText: 'Confirm Password',
-                          obscureText: _obscureConfirmPassword,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                              color: textGrey,
+                            // 2. Phone Number
+                            _buildLabel('Phone Number'),
+                            _buildInputField(
+                              controller: _phoneController,
+                              hintText: '+91 9876543210',
+                              keyboardType: TextInputType.phone,
+                              validator: (v) => v!.isEmpty ? 'Please enter phone number' : null,
                             ),
-                            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                          ),
-                          validator: (v) {
-                            if (v != _passwordController.text) return 'Passwords do not match';
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
+                            const SizedBox(height: 16),
 
-                        // Registration Button Core Action Frame
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: Consumer<StudentProvider>(
-                            builder: (context, studentProvider, _) {
-                              return ElevatedButton(
-                                onPressed: _isRegistering || studentProvider.isLoading
-                                    ? null
-                                    : () => _handleRegistration(context, studentProvider),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF174EA6), // Custom Layout matching Sage Button tint
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
+                            // 3. Admission Number
+                            _buildLabel('Admission Number'),
+                            _buildInputField(
+                              controller: _admissionController,
+                              hintText: 'KGR23CS000',
+                              validator: (v) => v!.isEmpty ? 'Please enter admission number' : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // 4. Password
+                            _buildLabel('Password'),
+                            _buildInputField(
+                              controller: _passwordController,
+                              hintText: 'Password',
+                              obscureText: _obscurePassword,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  color: textGrey,
                                 ),
-                                child: _isRegistering || studentProvider.isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Register',
-                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                              validator: (v) => v!.length < 6 ? 'Password must be 6+ characters' : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // 5. Confirm Password
+                            _buildLabel('Confirm Password'),
+                            _buildInputField(
+                              controller: _confirmPasswordController,
+                              hintText: 'Confirm Password',
+                              obscureText: _obscureConfirmPassword,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  color: textGrey,
+                                ),
+                                onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                              ),
+                              validator: (v) {
+                                if (v != _passwordController.text) return 'Passwords do not match';
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Registration Button Core Action Frame
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: Consumer<StudentProvider>(
+                                builder: (context, studentProvider, _) {
+                                  return ElevatedButton(
+                                    onPressed: _isRegistering || studentProvider.isLoading
+                                        ? null
+                                        : () => _handleRegistration(context, studentProvider),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF174EA6), // Custom Layout matching Sage Button tint
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(999),
                                       ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 22),
+                                    ),
+                                    child: _isRegistering || studentProvider.isLoading
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Register',
+                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                                          ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 22),
 
-                        // Navigation Link Back to Sign In Screen
-                        Center(
-                          child: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                "Already have an account? ",
-                                style: TextStyle(color: textGrey.withValues(alpha: 0.95), fontSize: 13),
+                            // Navigation Link Back to Sign In Screen
+                            Center(
+                              child: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    "Already have an account? ",
+                                    style: TextStyle(color: textGrey.withValues(alpha: 0.95), fontSize: 13),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: const Color(0xFF174EA6),
+                                      padding: EdgeInsets.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: const Text(
+                                      'Sign In',
+                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: const Color(0xFF174EA6),
-                                  padding: EdgeInsets.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
-                                  'Sign In',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

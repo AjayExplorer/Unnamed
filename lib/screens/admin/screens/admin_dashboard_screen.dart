@@ -87,6 +87,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             children: [
               isNarrow
                   ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildMetricCard('Faculty', provider.facultyCount.toString(), primaryBlue),
                         const SizedBox(height: 12),
@@ -95,9 +96,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                     )
                   : Row(
                       children: [
-                        _buildMetricCard('Faculty', provider.facultyCount.toString(), primaryBlue),
+                        Expanded(child: _buildMetricCard('Faculty', provider.facultyCount.toString(), primaryBlue)),
                         const SizedBox(width: 12),
-                        _buildMetricCard('Alerts', provider.allAlerts.length.toString(), primaryBlue),
+                        Expanded(child: _buildMetricCard('Alerts', provider.allAlerts.length.toString(), primaryBlue)),
                       ],
                     ),
               const SizedBox(height: 24),
@@ -163,22 +164,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   }
 
   Widget _buildMetricCard(String label, String value, Color primaryBlue) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(color: Color(0xFF667085), fontWeight: FontWeight.w600, fontSize: 12)),
-            const SizedBox(height: 8),
-            Text(value, style: TextStyle(color: primaryBlue, fontSize: 20, fontWeight: FontWeight.w700)),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(color: Color(0xFF667085), fontWeight: FontWeight.w600, fontSize: 12)),
+          const SizedBox(height: 8),
+          Text(value, style: TextStyle(color: primaryBlue, fontSize: 20, fontWeight: FontWeight.w700)),
+        ],
       ),
     );
   }
@@ -671,12 +670,17 @@ class _EditFacultyDialogState extends State<_EditFacultyDialog> {
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: 480,
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -768,7 +772,8 @@ class _EditFacultyDialogState extends State<_EditFacultyDialog> {
           ],
         ),
       ),
-    );
+    ),
+  );
 
   }
 }
