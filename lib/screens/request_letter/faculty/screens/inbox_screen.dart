@@ -153,6 +153,15 @@ class _RequestCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
+                  request.subject,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF101828),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
                   'ID: ${request.requestId}',
                   style: const TextStyle(
                     fontSize: 13,

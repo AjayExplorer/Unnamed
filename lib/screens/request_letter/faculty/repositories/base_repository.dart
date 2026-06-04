@@ -14,7 +14,7 @@ abstract class IFacultyRepository {
 abstract class IRequestRepository {
   Future<List<RequestLetter>> getRequestsForFaculty(String facultyId);
   Future<void> approveRequest(String requestId, String facultyId, String facultyName);
-  Future<void> rejectRequest(String requestId, String facultyId, String facultyName);
+  Future<void> rejectRequest(String requestId, String facultyId, String facultyName, String reason);
   Future<void> forwardRequest(String requestId, String fromId, String fromName, String toId, String toName, String nextStatus);
   Future<List<RequestHistory>> getRequestTimeline(String requestId);
 }

@@ -4,7 +4,7 @@ import '../repositories/mock_repository.dart';
 import '../repositories/firebase_repository.dart';
 
 class ServiceConfig {
-  static const bool useFirebase = false; // Toggle this for switching
+  static const bool useFirebase = true; // Toggle this for switching
 
   static final MockRepository _mock = MockRepository();
   static final FirebaseRepository _firebase = FirebaseRepository();

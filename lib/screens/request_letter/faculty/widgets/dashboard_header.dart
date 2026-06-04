@@ -107,7 +107,13 @@ class DashboardHeader extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
+                GestureDetector(
+                  onTap: () {
+                    authProvider.logout();
+                    Navigator.of(context).pushReplacementNamed('/login');
+                  },
+                  child: const Icon(Icons.logout, color: Colors.white, size: 22),
+                ),
               ],
             ),
           ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-//import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/student_provider.dart';
 
 class StudentRequestPage extends StatefulWidget {
   const StudentRequestPage({super.key});
@@ -11,6 +13,7 @@ class StudentRequestPage extends StatefulWidget {
 class _StudentRequestPageState extends State<StudentRequestPage> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _requestController = TextEditingController();
+  final TextEditingController _subjectController = TextEditingController();
   
   String _searchQuery = "";
   String? _selectedFacultyId;
@@ -21,6 +24,7 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
   void dispose() {
     _searchController.dispose();
     _requestController.dispose();
+    _subjectController.dispose();
     super.dispose();
   }
 
@@ -32,6 +36,12 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
       );
       return;
     }
+    if (_subjectController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please write a subject for your request.')),
+      );
+      return;
+    }
     if (_requestController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please write your request text details.')),
@@ -39,17 +49,23 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
       return;
     }
 
-    /*setState(() => _isSubmitting = true);
+    setState(() => _isSubmitting = true);
 
     try {
+      final currentStudent = Provider.of<StudentProvider>(context, listen: false).currentStudent;
+      final studentId = currentStudent?.id ?? 'Unknown_ID';
+      final studentName = currentStudent?.fullName ?? 'Unknown Student';
+
       await FirebaseFirestore.instance.collection('requests').add({
-        'facultyId': _selectedFacultyId,
-        'facultyName': _selectedFacultyName,
-        'requestText': _requestController.text.trim(),
-        'timestamp': FieldValue.serverTimestamp(),
+        'recipientFacultyId': _selectedFacultyId,
+        'currentHandlerId': _selectedFacultyId,
+        'currentHandlerName': _selectedFacultyName,
+        'subject': _subjectController.text.trim(),
+        'requestContent': _requestController.text.trim(),
+        'submissionDate': DateTime.now().toIso8601String(),
         'status': 'Pending',
-        // Note: Replace with actual logged-in user context if dynamic state is setup
-        'studentName': 'Current Student', 
+        'studentId': studentId,
+        'studentName': studentName,
       });
 
       if (mounted) {
@@ -66,17 +82,6 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
-    }
-  }*/
-
-    // Mock submission flow for local testing without Firestore
-    setState(() => _isSubmitting = true);
-    await Future.delayed(const Duration(seconds: 2)); // Simulate network delay
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Request sent successfully! (Mock)')),
-      );
-      Navigator.of(context).pop();
     }
   }
 
@@ -175,11 +180,8 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                         ),
                         const SizedBox(height: 12),
 
-                        /* =============================================================
-                        BACKEND TODO: UNCOMMENT THIS BLOCK ONCE FIREBASE IS SET UP
-                        =============================================================
                         StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance.collection('faculties').snapshots(),
+                          stream: FirebaseFirestore.instance.collection('faculty').snapshots(),
                           builder: (context, snapshot) {
                             if (snapshot.hasError) {
                               return const Text('Error loading faculty list.');
@@ -189,8 +191,8 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                             }
 
                             final docs = snapshot.data!.docs.where((doc) {
-                              final name = (doc['name'] ?? '').toString().toLowerCase();
-                              final dept = (doc['department'] ?? '').toString().toLowerCase();
+                              final name = (doc.data() as Map<String, dynamic>)['name']?.toString().toLowerCase() ?? '';
+                              final dept = (doc.data() as Map<String, dynamic>)['department']?.toString().toLowerCase() ?? '';
                               return name.contains(_searchQuery) || dept.contains(_searchQuery);
                             }).toList();
 
@@ -205,15 +207,21 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: docs.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 10),
+                              separatorBuilder: (_, _) => const SizedBox(height: 10),
                               itemBuilder: (context, index) {
                                 final doc = docs[index];
                                 final String id = doc.id;
-                                final String name = doc['name'] ?? 'Unknown Name';
-                                final String dept = doc['department'] ?? 'General Department';
-                                final String photoUrl = doc.data().toString().contains('photoUrl') ? doc['photoUrl'] : '';
-
-                                final bool isSelected = _selectedFacultyId == id;
+                                final data = doc.data() as Map<String, dynamic>;
+                                final String name = data['name'] ?? 'Unknown Name';
+                                final String dept = data['department'] ?? 'General Department';
+                                final String designation = data['designation'] ?? 'Faculty';
+                                final String availabilityStatus = data['availabilityStatus'] ?? 'Available';
+                                final String photoUrl = data['profilePhoto'] ?? data['imageUrl'] ?? '';
+                                
+                                // Determine status color based on availability
+                                final Color statusColor = availabilityStatus.toLowerCase() == 'on leave' 
+                                  ? const Color(0xFFDC2626)  // Red for on leave
+                                  : const Color(0xFF059669); // Green for available
 
                                 return Container(
                                   padding: const EdgeInsets.all(10),
@@ -235,14 +243,49 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              name,
-                                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Color(0xFF101828)),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    name,
+                                                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Color(0xFF101828)),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: statusColor.withValues(alpha: 0.1),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Text(
+                                                    availabilityStatus,
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 11,
+                                                      color: statusColor,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              dept,
-                                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: textGrey),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    designation,
+                                                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: textGrey),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  '• $dept',
+                                                  style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 11, color: Color(0xFF98A2B3)),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
@@ -265,90 +308,6 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                             );
                           },
                         ),
-                        */
-
-                        // --- TEMPORARY MOCK DATA FOR LOCAL TESTING ---
-                        // REMOVE OR COMMENT THIS OUT WHEN THE STREAMBUILDER ABOVE IS ACTIVE
-                        () {
-                          final List<Map<String, String>> mockFaculties = [
-                            {'id': '1', 'name': 'Dr. A. Sharma', 'department': 'Department of Computer Science'},
-                            {'id': '2', 'name': 'Prof. B. Rai', 'department': 'Department of Electronics'},
-                            {'id': '3', 'name': 'Ms. C. Gomez', 'department': 'Department of Civil'},
-                          ];
-
-                          final filteredDocs = mockFaculties.where((faculty) {
-                            final name = faculty['name']!.toLowerCase();
-                            final dept = faculty['department']!.toLowerCase();
-                            return name.contains(_searchQuery) || dept.contains(_searchQuery);
-                          }).toList();
-
-                          if (filteredDocs.isEmpty) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16.0),
-                              child: Text('No matching faculty members found.', style: TextStyle(color: textGrey)),
-                            );
-                          }
-
-                          return ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: filteredDocs.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 10),
-                            itemBuilder: (context, index) {
-                              final faculty = filteredDocs[index];
-                              final String id = faculty['id']!;
-                              final String name = faculty['name']!;
-                              final String dept = faculty['department']!;
-                              final bool isSelected = _selectedFacultyId == id;
-
-                              return Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: const Color(0xFFE4E7EC)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const CircleAvatar(
-                                      radius: 24,
-                                      backgroundColor: Color(0xFFD8ECE0),
-                                      child: Icon(Icons.person, color: Color(0xFF344054)),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            name,
-                                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Color(0xFF101828)),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            dept,
-                                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: textGrey),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Radio<String>(
-                                      value: id,
-                                      groupValue: _selectedFacultyId,
-                                      activeColor: primaryBlue,
-                                      onChanged: (String? value) {
-                                        setState(() {
-                                          _selectedFacultyId = value;
-                                          _selectedFacultyName = name;
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        }(),
                         const SizedBox(height: 24),
                     
                         const SizedBox(height: 24),
@@ -363,6 +322,25 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                           ),
                         ),
                         const SizedBox(height: 8),
+                        
+                        TextField(
+                          controller: _subjectController,
+                          decoration: InputDecoration(
+                            hintText: 'Subject',
+                            filled: true,
+                            fillColor: const Color(0xFFF9FAFB),
+                            hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(color: primaryBlue, width: 1.4),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         
                         // Large multiline input message input container matching teammate border standards
                         TextField(

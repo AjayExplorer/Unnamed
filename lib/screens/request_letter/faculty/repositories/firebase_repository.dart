@@ -19,7 +19,9 @@ class FirebaseRepository implements IFacultyRepository, IRequestRepository {
         .get();
 
     if (snapshot.docs.isNotEmpty) {
-      return Faculty.fromMap(snapshot.docs.first.data());
+      final data = snapshot.docs.first.data();
+      data['facultyId'] = snapshot.docs.first.id;
+      return Faculty.fromMap(data);
     }
     return null;
   }
@@ -27,7 +29,9 @@ class FirebaseRepository implements IFacultyRepository, IRequestRepository {
   @override
   Future<List<Faculty>> getAllFaculty() async {
     final snapshot = await _firestore.collection('faculty').get();
-    return snapshot.docs.map((doc) => Faculty.fromMap(doc.data())).toList();
+    return snapshot.docs
+        .map((doc) => Faculty.fromMap({...doc.data(), 'facultyId': doc.id}))
+        .toList();
   }
 
   @override
@@ -84,7 +88,10 @@ class FirebaseRepository implements IFacultyRepository, IRequestRepository {
         .collection('requests')
         .where('currentHandlerId', isEqualTo: facultyId)
         .get();
-    return snapshot.docs.map((doc) => RequestLetter.fromMap(doc.data())).toList();
+    return snapshot.docs
+        .map((doc) => RequestLetter.fromMap({...doc.data(), 'requestId': doc.id}))
+        .where((r) => !r.status.contains('Approved') && !r.status.contains('Rejected'))
+        .toList();
   }
 
   @override
@@ -113,13 +120,14 @@ class FirebaseRepository implements IFacultyRepository, IRequestRepository {
   }
 
   @override
-  Future<void> rejectRequest(String requestId, String facultyId, String facultyName) async {
+  Future<void> rejectRequest(String requestId, String facultyId, String facultyName, String reason) async {
     final batch = _firestore.batch();
     final requestRef = _firestore.collection('requests').doc(requestId);
     
     batch.update(requestRef, {
       'status': 'Rejected',
       'rejectedBy': facultyName,
+      'rejectionReason': reason,
       'rejectedDateTime': DateTime.now().toIso8601String(),
     });
 

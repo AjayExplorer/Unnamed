@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:openpro/models/news_feed.dart';
-import 'package:openpro/models/user_profile.dart';
+import '../../providers/news_provider.dart';
+import '../../providers/student_provider.dart';
 
 class NewsPage extends StatefulWidget {
   const NewsPage({super.key});
@@ -13,6 +15,7 @@ class _NewsPageState extends State<NewsPage> {
   final _titleController = TextEditingController();
   final _detailsController = TextEditingController();
   final _categoryController = TextEditingController(text: 'Event');
+  bool _hasLoadedNews = false;
 
   @override
   void dispose() {
@@ -23,7 +26,18 @@ class _NewsPageState extends State<NewsPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasLoadedNews) {
+      _hasLoadedNews = true;
+      context.read<NewsProvider>().loadNewsPosts();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final newsProvider = context.watch<NewsProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F7),
       appBar: AppBar(
@@ -38,10 +52,22 @@ class _NewsPageState extends State<NewsPage> {
         icon: const Icon(Icons.add),
         label: const Text('Create News'),
       ),
-      body: ValueListenableBuilder<List<NewsPost>>(
-        valueListenable: newsFeedNotifier,
-        builder: (context, feed, _) {
-          if (feed.isEmpty) {
+      body: Builder(
+        builder: (context) {
+          if (newsProvider.isLoading && newsProvider.posts.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (newsProvider.errorMessage != null && newsProvider.posts.isEmpty) {
+            return Center(
+              child: Text(
+                newsProvider.errorMessage!,
+                style: const TextStyle(color: Colors.red),
+              ),
+            );
+          }
+
+          if (newsProvider.posts.isEmpty) {
             return const Center(
               child: Text(
                 'No news yet. Create one from the button below.',
@@ -52,10 +78,10 @@ class _NewsPageState extends State<NewsPage> {
 
           return ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-            itemCount: feed.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemCount: newsProvider.posts.length,
+            separatorBuilder: (context, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
-              final post = feed[index];
+              final post = newsProvider.posts[index];
               return Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -116,13 +142,27 @@ class _NewsPageState extends State<NewsPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Text(
-                      'Posted by ${post.author}',
-                      style: const TextStyle(
-                        color: Color(0xFF344054),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Posted by ${post.author}',
+                          style: const TextStyle(
+                            color: Color(0xFF344054),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (post.authorId == context.read<StudentProvider>().currentStudent?.id)
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                            onPressed: () {
+                              if (post.id != null) {
+                                newsProvider.deleteNewsPost(post.id!);
+                              }
+                            },
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -139,11 +179,20 @@ class _NewsPageState extends State<NewsPage> {
     _detailsController.clear();
     _categoryController.text = 'Event';
 
+    final studentProvider = Provider.of<StudentProvider>(context, listen: false);
+    final newsProvider = Provider.of<NewsProvider>(context, listen: false);
+    final currentStudent = studentProvider.currentStudent;
+    final author = currentStudent?.fullName ?? 'Anonymous';
+    final authorId = currentStudent?.id ?? '';
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (sheetContext) {
+        final sheetMessenger = ScaffoldMessenger.of(sheetContext);
+        final sheetNavigator = Navigator.of(sheetContext);
+
         return Padding(
           padding: EdgeInsets.only(
             left: 16,
@@ -169,13 +218,13 @@ class _NewsPageState extends State<NewsPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final title = _titleController.text.trim();
                     final details = _detailsController.text.trim();
                     final category = _categoryController.text.trim();
 
                     if (title.isEmpty || details.isEmpty || category.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      sheetMessenger.showSnackBar(
                         const SnackBar(
                           content: Text(
                             'Please fill title, category and details',
@@ -185,23 +234,31 @@ class _NewsPageState extends State<NewsPage> {
                       return;
                     }
 
-                    final updatedFeed = [
-                      NewsPost(
-                        title: title,
-                        details: details,
-                        category: category,
-                        author: _authorName(),
-                        postedAt: DateTime.now(),
-                      ),
-                      ...newsFeedNotifier.value,
-                    ];
-
-                    newsFeedNotifier.value = updatedFeed;
-
-                    Navigator.of(sheetContext).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('News posted to the app')),
+                    final newPost = NewsPost(
+                      title: title,
+                      details: details,
+                      category: category,
+                      author: author,
+                      authorId: authorId,
+                      postedAt: DateTime.now(),
                     );
+
+                    final success = await newsProvider.addNewsPost(newPost);
+
+                    if (!mounted) return;
+
+                    if (success) {
+                      sheetNavigator.pop();
+                      sheetMessenger.showSnackBar(
+                        const SnackBar(content: Text('News posted to the app')),
+                      );
+                    } else {
+                      sheetMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text(newsProvider.errorMessage ?? 'Failed to post news'),
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF174EA6),
@@ -216,14 +273,6 @@ class _NewsPageState extends State<NewsPage> {
         );
       },
     );
-  }
-
-  String _authorName() {
-    final name = userProfileNotifier.value.name.trim();
-    if (name.isEmpty) {
-      return 'Anonymous';
-    }
-    return name;
   }
 
   Widget _inputField(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:openpro/models/user_profile.dart';
+import 'package:provider/provider.dart';
+import '../../providers/student_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -20,13 +21,21 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
 
-    final profile = userProfileNotifier.value;
-    _nameController = TextEditingController(text: profile.name);
-    _placeController = TextEditingController(text: profile.place);
-    _bloodGroupController = TextEditingController(text: profile.bloodGroup);
-    _phoneController = TextEditingController(text: profile.phoneNumber);
-    _photoController = TextEditingController(text: profile.photoUrl);
-    _departmentController = TextEditingController(text: profile.department);
+    final currentStudent =
+        context.read<StudentProvider>().currentStudent;
+
+    _nameController =
+        TextEditingController(text: currentStudent?.fullName ?? '');
+    _placeController =
+        TextEditingController(text: currentStudent?.place ?? '');
+    _bloodGroupController =
+        TextEditingController(text: currentStudent?.bloodGroup ?? '');
+    _phoneController =
+        TextEditingController(text: currentStudent?.phoneNumber ?? '');
+    _photoController =
+        TextEditingController(text: currentStudent?.photoUrl ?? '');
+    _departmentController =
+        TextEditingController(text: currentStudent?.department ?? '');
   }
 
   @override
@@ -42,6 +51,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final studentProvider = context.watch<StudentProvider>();
+    final currentStudent = studentProvider.currentStudent;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F7),
       appBar: AppBar(
@@ -84,6 +96,44 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(height: 18),
+          if (currentStudent != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Admission Number',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF344054),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFD0D5DD)),
+                    ),
+                    child: Text(
+                      currentStudent.admissionNumber,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF101828),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           _ProfileField(label: 'Name', controller: _nameController),
           _ProfileField(label: 'Place', controller: _placeController),
           _ProfileField(
@@ -100,27 +150,39 @@ class _ProfilePageState extends State<ProfilePage> {
             controller: _photoController,
             keyboardType: TextInputType.url,
           ),
-          _ProfileField(label: 'Department', controller: _departmentController),
+          _ProfileField(
+            label: 'Department',
+            controller: _departmentController,
+          ),
           const SizedBox(height: 18),
           SizedBox(
             height: 48,
             child: ElevatedButton(
-              onPressed: () {
-                userProfileNotifier.value = userProfileNotifier.value.copyWith(
-                  name: _nameController.text.trim(),
-                  place: _placeController.text.trim(),
-                  bloodGroup: _bloodGroupController.text.trim(),
-                  phoneNumber: _phoneController.text.trim(),
-                  photoUrl: _photoController.text.trim(),
-                  department: _departmentController.text.trim(),
-                );
+              onPressed: studentProvider.isLoading
+                  ? null
+                  : () async {
+                      final success = await studentProvider.updateStudentProfile(
+                        fullName: _nameController.text.trim(),
+                        phoneNumber: _phoneController.text.trim(),
+                        place: _placeController.text.trim(),
+                        bloodGroup: _bloodGroupController.text.trim(),
+                        photoUrl: _photoController.text.trim(),
+                        department: _departmentController.text.trim(),
+                      );
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile updated successfully')),
-                );
-
-                Navigator.of(context).pop();
-              },
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              success
+                                  ? studentProvider.successMessage ?? 'Profile updated successfully'
+                                  : studentProvider.errorMessage ?? 'Failed to update profile',
+                            ),
+                            backgroundColor: success ? Colors.green : Colors.red,
+                          ),
+                        );
+                      }
+                    },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF174EA6),
                 foregroundColor: Colors.white,
@@ -128,9 +190,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                'Save Changes',
-                style: TextStyle(fontWeight: FontWeight.w700),
+              child: Text(
+                studentProvider.isLoading ? 'Saving...' : 'Save Changes',
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
           ),
