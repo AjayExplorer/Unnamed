@@ -19,6 +19,7 @@ class StudentLiveTrackingScreen extends StatefulWidget {
 class _StudentLiveTrackingScreenState extends State<StudentLiveTrackingScreen> {
   LatLng? _studentLocation;
   String _busId = '';
+  double _sheetExtent = 0.45;
 
   @override
   void didChangeDependencies() {
@@ -98,6 +99,13 @@ class _StudentLiveTrackingScreenState extends State<StudentLiveTrackingScreen> {
 
     final bool isLive = tracking != null && tracking.trackingActive;
 
+    // Calculate map height depending on sheet extent
+    final screenHeight = MediaQuery.of(context).size.height;
+    final appBarHeight = kToolbarHeight;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final availableHeight = screenHeight - appBarHeight - statusBarHeight;
+    final mapHeight = availableHeight * (1.0 - _sheetExtent);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
@@ -106,11 +114,14 @@ class _StudentLiveTrackingScreenState extends State<StudentLiveTrackingScreen> {
         foregroundColor: primaryBlue,
         elevation: 0,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // 1. Live Map View
-          Expanded(
-            flex: 6,
+          // 1. Live Map View that resizes dynamically based on drag
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: mapHeight,
             child: tracking != null
                 ? AnimatedBusMap(
                     busLocation: LatLng(tracking.latitude, tracking.longitude),
@@ -132,53 +143,76 @@ class _StudentLiveTrackingScreenState extends State<StudentLiveTrackingScreen> {
                   ),
           ),
           
-          // 2. Telemetry and Timeline Card
-          Expanded(
-            flex: 5,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(28),
-                  topRight: Radius.circular(28),
-                ),
-                boxShadow: [
-                  BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, -4)),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(28),
-                  topRight: Radius.circular(28),
-                ),
-                child: DefaultTabController(
-                  length: 2,
-                  child: Column(
-                    children: [
-                      const TabBar(
-                        labelColor: primaryBlue,
-                        indicatorColor: primaryBlue,
-                        unselectedLabelColor: Colors.grey,
-                        labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        tabs: [
-                          Tab(text: 'Bus Information'),
-                          Tab(text: 'Route Timeline'),
-                        ],
-                      ),
-                      Expanded(
-                        child: TabBarView(
-                          children: [
-                            // Tab 1: Bus Info Card
-                            _buildInfoTab(bus, tracking, isLive, distanceToStudent, etaToStudent),
-                            // Tab 2: Route Timeline
-                            _buildTimelineTab(tracking, bus),
-                          ],
-                        ),
-                      ),
+          // 2. Draggable Bottom Tile Card (showing location details, bus stops)
+          NotificationListener<DraggableScrollableNotification>(
+            onNotification: (notification) {
+              setState(() {
+                _sheetExtent = notification.extent;
+              });
+              return true;
+            },
+            child: DraggableScrollableSheet(
+              initialChildSize: 0.45,
+              minChildSize: 0.35,
+              maxChildSize: 0.85,
+              snap: true,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(28),
+                      topRight: Radius.circular(28),
+                    ),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, -4)),
                     ],
                   ),
-                ),
-              ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(28),
+                      topRight: Radius.circular(28),
+                    ),
+                    child: DefaultTabController(
+                      length: 2,
+                      child: Column(
+                        children: [
+                          // Draggable drag handle representation
+                          Container(
+                            margin: const EdgeInsets.symmetric(vertical: 10),
+                            width: 50,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE4E7EC),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          const TabBar(
+                            labelColor: primaryBlue,
+                            indicatorColor: primaryBlue,
+                            unselectedLabelColor: Colors.grey,
+                            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            tabs: [
+                              Tab(text: 'Bus Information'),
+                              Tab(text: 'Route Timeline'),
+                            ],
+                          ),
+                          Expanded(
+                            child: TabBarView(
+                              children: [
+                                // Tab 1: Bus Info Card
+                                _buildInfoTab(bus!, tracking, isLive, distanceToStudent, etaToStudent, scrollController),
+                                // Tab 2: Route Timeline
+                                _buildTimelineTab(tracking, bus, scrollController),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -186,11 +220,12 @@ class _StudentLiveTrackingScreenState extends State<StudentLiveTrackingScreen> {
     );
   }
 
-  Widget _buildInfoTab(Bus bus, BusTrackingState? tracking, bool isLive, double? distanceToStudent, String? etaToStudent) {
+  Widget _buildInfoTab(Bus bus, BusTrackingState? tracking, bool isLive, double? distanceToStudent, String? etaToStudent, ScrollController scrollController) {
     const successGreen = Color(0xFF10B981);
     const errorRed = Color(0xFFEF4444);
 
     return SingleChildScrollView(
+      controller: scrollController,
       padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,12 +344,13 @@ class _StudentLiveTrackingScreenState extends State<StudentLiveTrackingScreen> {
     );
   }
 
-  Widget _buildTimelineTab(BusTrackingState? tracking, Bus bus) {
+  Widget _buildTimelineTab(BusTrackingState? tracking, Bus bus, ScrollController scrollController) {
     if (tracking == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
     return SingleChildScrollView(
+      controller: scrollController,
       padding: const EdgeInsets.all(20.0),
       child: RouteTimelineWidget(
         stops: tracking.stopsStatus,

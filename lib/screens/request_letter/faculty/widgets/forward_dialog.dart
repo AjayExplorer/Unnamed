@@ -40,7 +40,8 @@ class _ForwardDialogState extends State<ForwardDialog> {
     final allFaculty = availabilityProvider.allFaculty.where((f) {
       // Logic for forwarding:
       // Hide self, allow forwarding even if on leave
-      return f.facultyId != widget.currentFaculty.facultyId;
+      final isAllowedRole = f.role == FacultyRole.teacher || f.role == FacultyRole.hod || f.role == FacultyRole.principal;
+      return f.facultyId != widget.currentFaculty.facultyId && isAllowedRole;
     }).toList();
 
     _filteredFaculty = allFaculty.where((f) {

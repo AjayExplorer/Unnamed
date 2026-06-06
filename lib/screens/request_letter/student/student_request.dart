@@ -191,8 +191,13 @@ class _StudentRequestPageState extends State<StudentRequestPage> {
                             }
 
                             final docs = snapshot.data!.docs.where((doc) {
-                              final name = (doc.data() as Map<String, dynamic>)['name']?.toString().toLowerCase() ?? '';
-                              final dept = (doc.data() as Map<String, dynamic>)['department']?.toString().toLowerCase() ?? '';
+                              final data = doc.data() as Map<String, dynamic>;
+                              final role = (data['role'] ?? '').toString().toLowerCase();
+                              if (role != 'teacher' && role != 'hod' && role != 'principal') {
+                                return false;
+                              }
+                              final name = data['name']?.toString().toLowerCase() ?? '';
+                              final dept = data['department']?.toString().toLowerCase() ?? '';
                               return name.contains(_searchQuery) || dept.contains(_searchQuery);
                             }).toList();
 
