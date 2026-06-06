@@ -1,5 +1,5 @@
 
-enum FacultyRole { teacher, hod, principal }
+enum FacultyRole { teacher, hod, principal, driver }
 
 class Faculty {
   final String facultyId;
@@ -13,6 +13,8 @@ class Faculty {
   final String email;
   final String availabilityStatus; // 'Present', 'On Leave'
   final FacultyRole role;
+  final String? address;
+  final String? assignedBusId;
 
   Faculty({
     required this.facultyId,
@@ -26,6 +28,8 @@ class Faculty {
     required this.email,
     required this.availabilityStatus,
     required this.role,
+    this.address,
+    this.assignedBusId,
   });
 
   Map<String, dynamic> toMap() {
@@ -41,6 +45,8 @@ class Faculty {
       'email': email,
       'availabilityStatus': availabilityStatus,
       'role': role.toString().split('.').last,
+      'address': address,
+      'assignedBusId': assignedBusId,
     };
   }
 
@@ -60,6 +66,8 @@ class Faculty {
         (e) => e.toString().split('.').last == (map['role'] ?? 'teacher'),
         orElse: () => FacultyRole.teacher,
       ),
+      address: map['address'],
+      assignedBusId: map['assignedBusId'],
     );
   }
 }

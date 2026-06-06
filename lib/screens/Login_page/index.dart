@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import '../../providers/student_provider.dart';
 import '../request_letter/faculty/providers/auth_provider.dart';
 import '../request_letter/faculty/faculty_main_screen.dart';
+import '../request_letter/faculty/models/faculty_model.dart';
 import '../admin/providers/admin_provider.dart';
+import '../bus_tracking/providers/bus_tracking_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -228,10 +230,18 @@ class _LoginPageState extends State<LoginPage> {
                                       
                                       if (success) {
                                         if (context.mounted) {
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => const FacultyMainScreen()),
-                                          );
+                                          final faculty = context.read<AuthProvider>().currentFaculty;
+                                          if (faculty != null && faculty.role == FacultyRole.driver) {
+                                            await context.read<BusTrackingProvider>().initializeDriver(faculty);
+                                            if (context.mounted) {
+                                              Navigator.pushReplacementNamed(context, '/driver_dashboard');
+                                            }
+                                          } else {
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(builder: (context) => const FacultyMainScreen()),
+                                            );
+                                          }
                                         }
                                       } else {
                                         if (context.mounted) {

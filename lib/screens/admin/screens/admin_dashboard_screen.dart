@@ -106,6 +106,67 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
               const SizedBox(height: 12),
               Text('Total Faculty Members: ${provider.allFaculty.length}'),
               Text('Active Alerts: ${provider.allAlerts.length}'),
+              const SizedBox(height: 28),
+              const Text('Transport & Bus Tracking Management', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Card(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 2,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/admin_driver_registration');
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                          child: Column(
+                            children: [
+                              Icon(Icons.person_add_alt, color: primaryBlue, size: 28),
+                              SizedBox(height: 8),
+                              Text(
+                                'Register Driver',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: primaryBlue),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Card(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 2,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/admin_bus_registration');
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                          child: Column(
+                            children: [
+                              Icon(Icons.directions_bus_filled, color: primaryBlue, size: 28),
+                              SizedBox(height: 8),
+                              Text(
+                                'Register Bus & Route',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: primaryBlue),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           );
         },

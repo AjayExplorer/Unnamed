@@ -23,6 +23,14 @@ import 'providers/news_provider.dart';
 import 'providers/student_provider.dart';
 import 'screens/request_letter/student/student_request.dart';
 import 'screens/request_letter/student/student_history.dart';
+import 'screens/bus_tracking/providers/bus_tracking_provider.dart';
+import 'screens/bus_tracking/screens/admin_driver_registration_screen.dart';
+import 'screens/bus_tracking/screens/admin_bus_registration_screen.dart';
+import 'screens/bus_tracking/screens/driver_dashboard_screen.dart';
+import 'screens/bus_tracking/screens/driver_profile_screen.dart';
+import 'screens/bus_tracking/screens/student_bus_home_screen.dart';
+import 'screens/bus_tracking/screens/student_live_tracking_screen.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -50,6 +58,7 @@ Future<void> main() async {
         ChangeNotifierProvider<AdminProvider>(create: (_) => AdminProvider()),
         ChangeNotifierProvider<StudentProvider>(create: (_) => StudentProvider()),
         ChangeNotifierProvider<NewsProvider>(create: (_) => NewsProvider()),
+        ChangeNotifierProvider<BusTrackingProvider>(create: (_) => BusTrackingProvider()),
       ],
       child: const MyApp(),
     ),
@@ -116,6 +125,12 @@ class MyApp extends StatelessWidget {
         '/student_request': (context) => const StudentRequestPage(),
         '/student_history': (context) => const StudentHistoryPage(),
         '/events': (context) => const EventsPage(),
+        '/student_bus_tracking_home': (context) => const StudentBusHomeScreen(),
+        '/student_live_tracking': (context) => const StudentLiveTrackingScreen(),
+        '/driver_dashboard': (context) => const DriverDashboardScreen(),
+        '/driver_profile': (context) => const DriverProfileScreen(),
+        '/admin_driver_registration': (context) => const AdminDriverRegistrationScreen(),
+        '/admin_bus_registration': (context) => const AdminBusRegistrationScreen(),
         // '/add-event': (context) => const AddEventPage(), // removed – using dialog in EventsPage
       },
     );

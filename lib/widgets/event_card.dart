@@ -6,7 +6,7 @@ class EventCard extends StatelessWidget {
   final EventModel event;
   final Color accentColor;
 
-  const EventCard({Key? key, required this.event, required this.accentColor}) : super(key: key);
+  const EventCard({super.key, required this.event, required this.accentColor});
 
   Color _badgeColor(int days) {
     if (days < 3) return Colors.redAccent;
