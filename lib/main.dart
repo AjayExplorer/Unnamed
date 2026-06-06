@@ -9,6 +9,7 @@ import 'screens/alerts/index.dart';
 import 'screens/main_page/front.dart';
 import 'screens/news/index.dart';
 import 'screens/profile/index.dart';
+import 'screens/event/event.dart';
 import 'screens/request_letter/faculty/providers/auth_provider.dart';
 import 'screens/request_letter/faculty/providers/request_provider.dart';
 import 'screens/request_letter/faculty/providers/availability_provider.dart';
@@ -42,13 +43,13 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => RequestProvider()),
-        ChangeNotifierProvider(create: (_) => AvailabilityProvider()),
-        ChangeNotifierProvider(create: (_) => FacultyRegistrationProvider()),
-        ChangeNotifierProvider(create: (_) => AdminProvider()),
-        ChangeNotifierProvider(create: (_) => StudentProvider()),
-        ChangeNotifierProvider(create: (_) => NewsProvider()),
+        ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
+        ChangeNotifierProvider<RequestProvider>(create: (_) => RequestProvider()),
+        ChangeNotifierProvider<AvailabilityProvider>(create: (_) => AvailabilityProvider()),
+        ChangeNotifierProvider<FacultyRegistrationProvider>(create: (_) => FacultyRegistrationProvider()),
+        ChangeNotifierProvider<AdminProvider>(create: (_) => AdminProvider()),
+        ChangeNotifierProvider<StudentProvider>(create: (_) => StudentProvider()),
+        ChangeNotifierProvider<NewsProvider>(create: (_) => NewsProvider()),
       ],
       child: const MyApp(),
     ),
@@ -100,8 +101,10 @@ class MyApp extends StatelessWidget {
         '/faculty_register': (context) => const FacultyRegistrationRequestScreen(),
         '/admin_dashboard': (context) => const AdminDashboardScreen(),
         '/verify': (context) => const StudentVerification(),
-        '/student_request':(context) => const StudentRequestPage(),
+        '/student_request': (context) => const StudentRequestPage(),
         '/student_history': (context) => const StudentHistoryPage(),
+        '/events': (context) => const EventsPage(),
+        // '/add-event': (context) => const AddEventPage(), // removed – using dialog in EventsPage
       },
     );
   }

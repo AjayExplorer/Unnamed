@@ -116,17 +116,19 @@ class _FrontPageState extends State<FrontPage> {
                       itemBuilder: (context, index) {
                         final tile = _featureTiles[index];
                         return _FeatureCard(
-                         data: tile,
-  onTap: () {
-    if (tile.title.contains('News')) {
-      Navigator.of(context).pushNamed('/news');
-    } else if (tile.title.toLowerCase().contains('request')) {
-      Navigator.of(context).pushNamed('/student_request');
-    }
-  },
-); // Closes the _FeatureCard widget statement cleanly inside itemBuilder
-      }, // Closes the itemBuilder function block parameter
-    ), //
+                          data: tile,
+                          onTap: () {
+                            if (tile.title.contains('News')) {
+                              Navigator.of(context).pushNamed('/news');
+                            } else if (tile.title.toLowerCase().contains('request')) {
+                              Navigator.of(context).pushNamed('/student_request');
+                            } else if (tile.title.contains('Events')) {
+                              Navigator.of(context).pushNamed('/events');
+                            }
+                          },
+                        );
+                      },
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'Hello $displayName!',

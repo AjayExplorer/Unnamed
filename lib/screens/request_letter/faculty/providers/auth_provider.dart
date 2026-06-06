@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/faculty_model.dart';
 import 'service_config.dart';
 
-class AuthProvider with ChangeNotifier {
+class AuthProvider extends ChangeNotifier {
   Faculty? _currentFaculty;
   bool _isLoading = false;
 
