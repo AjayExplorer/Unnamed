@@ -30,6 +30,8 @@ import 'screens/bus_tracking/screens/driver_dashboard_screen.dart';
 import 'screens/bus_tracking/screens/driver_profile_screen.dart';
 import 'screens/bus_tracking/screens/student_bus_home_screen.dart';
 import 'screens/bus_tracking/screens/student_live_tracking_screen.dart';
+import 'screens/lost_found/providers/lost_found_provider.dart';
+import 'screens/lost_found/screens/lost_found_home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +61,7 @@ Future<void> main() async {
         ChangeNotifierProvider<StudentProvider>(create: (_) => StudentProvider()),
         ChangeNotifierProvider<NewsProvider>(create: (_) => NewsProvider()),
         ChangeNotifierProvider<BusTrackingProvider>(create: (_) => BusTrackingProvider()),
+        ChangeNotifierProvider<LostFoundProvider>(create: (_) => LostFoundProvider()),
       ],
       child: const MyApp(),
     ),
@@ -131,6 +134,7 @@ class MyApp extends StatelessWidget {
         '/driver_profile': (context) => const DriverProfileScreen(),
         '/admin_driver_registration': (context) => const AdminDriverRegistrationScreen(),
         '/admin_bus_registration': (context) => const AdminBusRegistrationScreen(),
+        '/lost_found': (context) => const LostAndFoundHomeScreen(),
         // '/add-event': (context) => const AddEventPage(), // removed – using dialog in EventsPage
       },
     );
