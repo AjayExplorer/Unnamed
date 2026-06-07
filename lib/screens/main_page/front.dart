@@ -134,6 +134,8 @@ class _FrontPageState extends State<FrontPage> {
                                   Navigator.of(context).pushNamed('/lost_found');
                                 } else if (tile.title.toLowerCase().contains('bus')) {
                                   Navigator.of(context).pushNamed('/student_bus_tracking_home');
+                                } else if (tile.title.toLowerCase().contains('food')) {
+                                  Navigator.of(context).pushNamed('/food_sharing');
                                 }
                               },
                             );
