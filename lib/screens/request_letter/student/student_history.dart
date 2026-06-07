@@ -204,6 +204,23 @@ class _RequestHistoryCard extends StatelessWidget {
                 ),
               ),
             ],
+            if (status == 'Approved') ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  border: Border.all(color: const Color(0xFFF59E0B), width: 1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  '⚠️ This approved request will be auto-removed in 3 days. Please download for future use.',
+                  style: TextStyle(
+                      color: Color(0xFF92400E), fontSize: 12, height: 1.4),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             const Divider(height: 1),
             const SizedBox(height: 12),

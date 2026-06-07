@@ -34,6 +34,7 @@ import 'screens/lost_found/providers/lost_found_provider.dart';
 import 'screens/lost_found/screens/lost_found_home_screen.dart';
 import 'screens/food_sharing/screens/food_sharing_home_screen.dart';
 import 'screens/green_campus/green_campus_screen.dart';
+import 'screens/ride_sharing/screens/ride_sharing_home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -139,6 +140,7 @@ class MyApp extends StatelessWidget {
         '/lost_found': (context) => const LostAndFoundHomeScreen(),
         '/food_sharing': (context) => const FoodSharingHomeScreen(),
         '/green_campus': (context) => const GreenCampusScreen(),
+        '/ride_sharing': (context) => const RideSharingHomeScreen(),
         // '/add-event': (context) => const AddEventPage(), // removed – using dialog in EventsPage
       },
     );
