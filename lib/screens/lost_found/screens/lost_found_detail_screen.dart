@@ -14,12 +14,13 @@ class LostFoundDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLost = item.type == 'lost';
-    final accentColor =
-        isLost ? const Color(0xFFEF6C50) : const Color(0xFF31A25C);
-    final hasImage = item.imageUrl.trim().isNotEmpty;
+    final accentColor = isLost
+        ? const Color(0xFFEF6C50)
+        : const Color(0xFF31A25C);
+    final hasImage = _hasValidImageUrl(item.imageUrl);
 
     // Determine ownership
-    final studentProvider = context.read<StudentProvider>();
+    final studentProvider = context.watch<StudentProvider>();
     final currentStudent = studentProvider.currentStudent;
     final currentUid =
         FirebaseAuth.instance.currentUser?.uid ?? currentStudent?.id ?? '';
@@ -33,8 +34,11 @@ class LostFoundDetailScreen extends StatelessWidget {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -45,15 +49,7 @@ class LostFoundDetailScreen extends StatelessWidget {
             fontSize: 20,
           ),
         ),
-        actions: [
-          if (isOwner)
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded,
-                  color: Colors.white),
-              tooltip: 'Delete',
-              onPressed: () => _confirmDelete(context, currentUid),
-            ),
-        ],
+        actions: [],
       ),
       body: Container(
         width: double.infinity,
@@ -77,25 +73,43 @@ class LostFoundDetailScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
-                  image: hasImage
-                      ? DecorationImage(
-                          image: NetworkImage(item.imageUrl),
-                          fit: BoxFit.cover,
-                          onError: (_, __) {},
-                        )
-                      : null,
                 ),
-                child: hasImage
-                    ? null
-                    : Center(
-                        child: Icon(
-                          isLost
-                              ? Icons.search_off_rounded
-                              : Icons.emoji_objects_rounded,
-                          color: accentColor.withValues(alpha: 0.25),
-                          size: 72,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: hasImage
+                      ? Image.network(
+                          item.imageUrl.trim(),
+                          width: double.infinity,
+                          height: 220,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Icon(
+                                isLost
+                                    ? Icons.search_off_rounded
+                                    : Icons.emoji_objects_rounded,
+                                color: accentColor.withValues(alpha: 0.25),
+                                size: 72,
+                              ),
+                            );
+                          },
+                        )
+                      : Center(
+                          child: Icon(
+                            isLost
+                                ? Icons.search_off_rounded
+                                : Icons.emoji_objects_rounded,
+                            color: accentColor.withValues(alpha: 0.25),
+                            size: 72,
+                          ),
                         ),
-                      ),
+                ),
               ),
               const SizedBox(height: 20),
 
@@ -103,8 +117,10 @@ class LostFoundDetailScreen extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: accentColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
@@ -120,12 +136,18 @@ class LostFoundDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  const Icon(Icons.access_time_rounded,
-                      color: Color(0xFF667085), size: 14),
+                  const Icon(
+                    Icons.access_time_rounded,
+                    color: Color(0xFF667085),
+                    size: 14,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     _formatFullDate(item.createdAt),
-                    style: const TextStyle(color: Color(0xFF667085), fontSize: 12),
+                    style: const TextStyle(
+                      color: Color(0xFF667085),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -167,8 +189,11 @@ class LostFoundDetailScreen extends StatelessWidget {
                     CircleAvatar(
                       radius: 18,
                       backgroundColor: accentColor.withValues(alpha: 0.15),
-                      child:
-                          Icon(Icons.person_rounded, color: accentColor, size: 20),
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: accentColor,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -197,7 +222,9 @@ class LostFoundDetailScreen extends StatelessWidget {
                     if (isOwner)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF1F3F4),
                           borderRadius: BorderRadius.circular(6),
@@ -223,12 +250,18 @@ class LostFoundDetailScreen extends StatelessWidget {
                   height: 48,
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: accentColor.withValues(alpha: 0.4)),
+                      side: BorderSide(
+                        color: accentColor.withValues(alpha: 0.4),
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    icon: Icon(Icons.copy_rounded, color: accentColor, size: 18),
+                    icon: Icon(
+                      Icons.copy_rounded,
+                      color: accentColor,
+                      size: 18,
+                    ),
                     label: Text(
                       'Copy Image URL',
                       style: TextStyle(
@@ -255,73 +288,30 @@ class LostFoundDetailScreen extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, String currentUid) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text(
-            'Delete Post?',
-            style: TextStyle(color: Color(0xFF101828), fontWeight: FontWeight.w700),
-          ),
-          content: const Text(
-            'This action cannot be undone. Are you sure you want to delete this post?',
-            style: TextStyle(color: Color(0xFF667085)),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel',
-                  style: TextStyle(color: Color(0xFF667085))),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(ctx).pop(); // close dialog
-                final provider = context.read<LostFoundProvider>();
-                final success =
-                    await provider.deleteItem(item.id, currentUid);
-                if (!context.mounted) return;
-                if (success) {
-                  Navigator.of(context).pop(); // go back to list
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Post deleted'),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: Color(0xFFEF6C50),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content:
-                          Text(provider.errorMessage ?? 'Failed to delete'),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: const Color(0xFFEF6C50),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Delete',
-                  style: TextStyle(
-                      color: Color(0xFFEF6C50), fontWeight: FontWeight.w700)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   String _formatFullDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final h = date.hour > 12 ? date.hour - 12 : date.hour;
     final amPm = date.hour >= 12 ? 'PM' : 'AM';
     final min = date.minute.toString().padLeft(2, '0');
     return '${months[date.month - 1]} ${date.day}, ${date.year} · ${h == 0 ? 12 : h}:$min $amPm';
+  }
+
+  bool _hasValidImageUrl(String url) {
+    final trimmed = url.trim();
+    final uri = Uri.tryParse(trimmed);
+    return uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
   }
 }

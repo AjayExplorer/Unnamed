@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/lost_found_item.dart';
 
 class LostFoundRepository {
-  final CollectionReference _collection =
-      FirebaseFirestore.instance.collection('lost_found');
+  final CollectionReference _collection = FirebaseFirestore.instance.collection(
+    'lost_found',
+  );
 
   /// Adds a new lost/found post.
   Future<void> addItem(LostFoundItem item) async {
@@ -40,8 +41,9 @@ class LostFoundRepository {
     }
 
     final snapshot = await query.get();
-    List<LostFoundItem> items =
-        snapshot.docs.map((doc) => LostFoundItem.fromFirestore(doc)).toList();
+    List<LostFoundItem> items = snapshot.docs
+        .map((doc) => LostFoundItem.fromFirestore(doc))
+        .toList();
 
     // Client-side type filter
     items = items.where((item) => item.type == type).toList();
@@ -58,7 +60,8 @@ class LostFoundRepository {
     // Client-side alphabetical sort
     if (sortBy == 'alphabetical') {
       items.sort(
-          (a, b) => a.keyword.toLowerCase().compareTo(b.keyword.toLowerCase()));
+        (a, b) => a.keyword.toLowerCase().compareTo(b.keyword.toLowerCase()),
+      );
     }
 
     return items;

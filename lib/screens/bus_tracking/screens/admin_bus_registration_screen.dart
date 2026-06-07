@@ -34,12 +34,19 @@ class _AdminBusRegistrationScreenState extends State<AdminBusRegistrationScreen>
   String _pinningTarget = 'none'; // 'source', 'destination', 'stop'
   late MapController _mapController;
 
+  // Edit mode state
+  String? _editingBusId;
+  String? _previousDriverId; // to handle driver reassignment
+  bool get _isEditMode => _editingBusId != null;
+
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BusTrackingProvider>().loadDrivers();
+      final provider = context.read<BusTrackingProvider>();
+      provider.loadDrivers();
+      provider.loadBuses();
     });
   }
 
@@ -53,6 +60,51 @@ class _AdminBusRegistrationScreenState extends State<AdminBusRegistrationScreen>
     _stopNameController.dispose();
     _mapController.dispose();
     super.dispose();
+  }
+
+  void _clearForm() {
+    _busNumberController.clear();
+    _numberPlateController.clear();
+    _busNameController.clear();
+    _sourceNameController.text = 'Main Campus';
+    _destNameController.text = 'City Terminal';
+    _stopNameController.clear();
+    setState(() {
+      _selectedDriverId = null;
+      _sourceLatLng = const LatLng(10.0158, 76.3507);
+      _destLatLng = const LatLng(10.0358, 76.3707);
+      _selectedMapLatLng = const LatLng(10.0258, 76.3607);
+      _intermediateStops.clear();
+      _pinningTarget = 'none';
+      _editingBusId = null;
+      _previousDriverId = null;
+    });
+  }
+
+  void _startEditingBus(Bus bus) {
+    _busNumberController.text = bus.busNumber;
+    _numberPlateController.text = bus.numberPlate;
+    _busNameController.text = bus.busName ?? '';
+    _sourceNameController.text = bus.route.source.name;
+    _destNameController.text = bus.route.destination.name;
+
+    setState(() {
+      _selectedDriverId = bus.driverId;
+      _previousDriverId = bus.driverId;
+      _editingBusId = bus.busId;
+      _sourceLatLng = LatLng(bus.route.source.latitude, bus.route.source.longitude);
+      _destLatLng = LatLng(bus.route.destination.latitude, bus.route.destination.longitude);
+      _intermediateStops.clear();
+      _intermediateStops.addAll(bus.route.stops);
+      _pinningTarget = 'none';
+    });
+
+    // Center map on the route
+    try {
+      _mapController.move(_sourceLatLng, 13.0);
+    } catch (_) {
+      // MapController may not be ready
+    }
   }
 
   void _addStop() {
@@ -70,7 +122,7 @@ class _AdminBusRegistrationScreenState extends State<AdminBusRegistrationScreen>
     });
   }
 
-  void _registerBus() async {
+  void _submitBus() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedDriverId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -86,24 +138,41 @@ class _AdminBusRegistrationScreenState extends State<AdminBusRegistrationScreen>
       stops: _intermediateStops,
     );
 
-    final success = await provider.registerBus(
-      busNumber: _busNumberController.text.trim(),
-      numberPlate: _numberPlateController.text.trim(),
-      busName: _busNameController.text.trim().isEmpty ? null : _busNameController.text.trim(),
-      driverId: _selectedDriverId!,
-      route: route,
-    );
+    bool success;
+
+    if (_isEditMode) {
+      success = await provider.updateBus(
+        busId: _editingBusId!,
+        busNumber: _busNumberController.text.trim(),
+        numberPlate: _numberPlateController.text.trim(),
+        busName: _busNameController.text.trim().isEmpty ? null : _busNameController.text.trim(),
+        driverId: _selectedDriverId!,
+        route: route,
+        previousDriverId: _previousDriverId,
+      );
+    } else {
+      success = await provider.registerBus(
+        busNumber: _busNumberController.text.trim(),
+        numberPlate: _numberPlateController.text.trim(),
+        busName: _busNameController.text.trim().isEmpty ? null : _busNameController.text.trim(),
+        driverId: _selectedDriverId!,
+        route: route,
+      );
+    }
 
     if (!mounted) return;
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bus and Route registered successfully!'), backgroundColor: Colors.green),
+        SnackBar(
+          content: Text(_isEditMode ? 'Bus updated successfully!' : 'Bus and Route registered successfully!'),
+          backgroundColor: Colors.green,
+        ),
       );
-      Navigator.of(context).pop();
+      _clearForm();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.errorMessage ?? 'Registration failed.'), backgroundColor: Colors.red),
+        SnackBar(content: Text(provider.errorMessage ?? 'Operation failed.'), backgroundColor: Colors.red),
       );
     }
   }
@@ -119,9 +188,9 @@ class _AdminBusRegistrationScreenState extends State<AdminBusRegistrationScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Bus Specifications',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF101828)),
+          Text(
+            _isEditMode ? 'Update Bus Details' : 'Bus Specifications',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF101828)),
           ),
           const SizedBox(height: 12),
           Card(
@@ -158,7 +227,7 @@ class _AdminBusRegistrationScreenState extends State<AdminBusRegistrationScreen>
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    initialValue: _selectedDriverId,
+                    value: _selectedDriverId,
                     hint: const Text('Assign Driver'),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -313,21 +382,217 @@ class _AdminBusRegistrationScreenState extends State<AdminBusRegistrationScreen>
             ),
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: provider.isLoading ? null : _registerBus,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryBlue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          Row(
+            children: [
+              if (_isEditMode) ...[
+                Expanded(
+                  child: SizedBox(
+                    height: 50,
+                    child: OutlinedButton(
+                      onPressed: _clearForm,
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF667085)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Cancel Edit', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF667085))),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: provider.isLoading ? null : _submitBus,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isEditMode ? const Color(0xFF0F766E) : primaryBlue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: provider.isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            _isEditMode ? 'Update Bus & Route' : 'Register Bus & Route',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                  ),
+                ),
               ),
-              child: provider.isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Register Bus & Route', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
+            ],
           ),
+
+          // --- Existing Buses List ---
+          const SizedBox(height: 36),
+          const Divider(),
+          const SizedBox(height: 12),
+          const Text(
+            'Existing Buses',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF101828)),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Tap Edit to modify bus details or route.',
+            style: TextStyle(fontSize: 13, color: Color(0xFF667085)),
+          ),
+          const SizedBox(height: 16),
+          if (provider.isLoading && provider.buses.isEmpty)
+            const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
+          else if (provider.buses.isEmpty)
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 1,
+              child: const Padding(
+                padding: EdgeInsets.all(32.0),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.directions_bus_outlined, size: 48, color: Color(0xFF98A2B3)),
+                      SizedBox(height: 12),
+                      Text(
+                        'No buses registered yet.',
+                        style: TextStyle(fontSize: 15, color: Color(0xFF667085), fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: provider.buses.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final bus = provider.buses[index];
+                final isCurrentlyEditing = _editingBusId == bus.busId;
+                return Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: isCurrentlyEditing
+                        ? const BorderSide(color: Color(0xFF0F766E), width: 2)
+                        : BorderSide.none,
+                  ),
+                  elevation: isCurrentlyEditing ? 4 : 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundColor: primaryBlue.withOpacity(0.1),
+                              child: const Icon(Icons.directions_bus, color: primaryBlue),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    bus.busNumber,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF101828),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    bus.numberPlate,
+                                    style: const TextStyle(fontSize: 13, color: Color(0xFF667085), fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isCurrentlyEditing)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0F766E).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  'EDITING',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF0F766E),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        if (bus.busName != null && bus.busName!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.route_outlined, size: 14, color: Color(0xFF667085)),
+                                const SizedBox(width: 6),
+                                Text(bus.busName!, style: const TextStyle(fontSize: 13, color: Color(0xFF667085))),
+                              ],
+                            ),
+                          ),
+                        Row(
+                          children: [
+                            const Icon(Icons.person_outline, size: 14, color: Color(0xFF667085)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                '${bus.driverName} (${bus.driverPhone})',
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF667085)),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.play_circle_fill, size: 14, color: Colors.green),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                '${bus.route.source.name} → ${bus.route.destination.name}',
+                                style: const TextStyle(fontSize: 12, color: Color(0xFF667085)),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (bus.route.stops.isNotEmpty)
+                              Text(
+                                '${bus.route.stops.length} stops',
+                                style: const TextStyle(fontSize: 11, color: Color(0xFF98A2B3), fontWeight: FontWeight.w600),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: isCurrentlyEditing ? null : () => _startEditingBus(bus),
+                              icon: const Icon(Icons.edit_outlined, size: 16),
+                              label: Text(isCurrentlyEditing ? 'Currently Editing' : 'Edit'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: primaryBlue,
+                                side: BorderSide(color: isCurrentlyEditing ? Colors.grey[300]! : primaryBlue),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -446,7 +711,10 @@ class _AdminBusRegistrationScreenState extends State<AdminBusRegistrationScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
-        title: const Text('Register Bus & Route', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(
+          _isEditMode ? 'Update Bus & Route' : 'Register Bus & Route',
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
         backgroundColor: primaryBlue,
         foregroundColor: Colors.white,
         elevation: 0,

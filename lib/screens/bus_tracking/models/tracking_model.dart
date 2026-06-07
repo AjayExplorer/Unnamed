@@ -35,10 +35,7 @@ class RouteStopStatus {
     );
   }
 
-  RouteStopStatus copyWith({
-    String? status,
-    String? arrivalTime,
-  }) {
+  RouteStopStatus copyWith({String? status, String? arrivalTime}) {
     return RouteStopStatus(
       name: name,
       latitude: latitude,
@@ -62,6 +59,7 @@ class BusTrackingState {
   final String eta;
   final bool trackingActive;
   final List<RouteStopStatus> stopsStatus;
+  final DateTime? expiresAt;
 
   BusTrackingState({
     required this.busId,
@@ -76,6 +74,7 @@ class BusTrackingState {
     required this.eta,
     required this.trackingActive,
     required this.stopsStatus,
+    this.expiresAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -92,10 +91,14 @@ class BusTrackingState {
       'eta': eta,
       'trackingActive': trackingActive,
       'stopsStatus': stopsStatus.map((x) => x.toMap()).toList(),
+      'expiresAt': expiresAt != null ? Timestamp.fromDate(expiresAt!) : null,
     };
   }
 
-  factory BusTrackingState.fromMap(Map<String, dynamic> map, String documentId) {
+  factory BusTrackingState.fromMap(
+    Map<String, dynamic> map,
+    String documentId,
+  ) {
     DateTime parsedTime;
     final ts = map['timestamp'];
     if (ts is Timestamp) {
@@ -104,6 +107,14 @@ class BusTrackingState {
       parsedTime = DateTime.tryParse(ts) ?? DateTime.now();
     } else {
       parsedTime = DateTime.now();
+    }
+
+    DateTime? expiresAtTime;
+    final expiresTs = map['expiresAt'];
+    if (expiresTs is Timestamp) {
+      expiresAtTime = expiresTs.toDate();
+    } else if (expiresTs is String) {
+      expiresAtTime = DateTime.tryParse(expiresTs);
     }
 
     return BusTrackingState(
@@ -115,13 +126,18 @@ class BusTrackingState {
       timestamp: parsedTime,
       currentStop: map['currentStop'] ?? '',
       nextStop: map['nextStop'] ?? '',
-      distanceToNextStop: (map['distanceToNextStop'] as num?)?.toDouble() ?? 0.0,
+      distanceToNextStop:
+          (map['distanceToNextStop'] as num?)?.toDouble() ?? 0.0,
       eta: map['eta'] ?? '',
       trackingActive: map['trackingActive'] ?? false,
-      stopsStatus: (map['stopsStatus'] as List?)
-              ?.map((x) => RouteStopStatus.fromMap(Map<String, dynamic>.from(x)))
+      stopsStatus:
+          (map['stopsStatus'] as List?)
+              ?.map(
+                (x) => RouteStopStatus.fromMap(Map<String, dynamic>.from(x)),
+              )
               .toList() ??
           [],
+      expiresAt: expiresAtTime,
     );
   }
 }

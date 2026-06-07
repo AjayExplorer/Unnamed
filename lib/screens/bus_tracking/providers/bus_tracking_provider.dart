@@ -154,53 +154,140 @@ class BusTrackingProvider extends ChangeNotifier {
     }
   }
 
+  // Update an existing driver's details
+  Future<bool> updateDriver({
+    required String driverId,
+    required String name,
+    required String phone,
+    required String address,
+    required String username,
+    required String password,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _repository.updateDriverProfile(driverId, {
+        'name': name,
+        'phone': phone,
+        'address': address,
+        'username': username,
+        'password': password,
+      });
+      await loadDrivers();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Update an existing bus
+  Future<bool> updateBus({
+    required String busId,
+    required String busNumber,
+    required String numberPlate,
+    String? busName,
+    required String driverId,
+    required BusRoute route,
+    String? previousDriverId,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final driver = _drivers.firstWhere((d) => d.facultyId == driverId);
+      final updatedBus = Bus(
+        busId: busId,
+        busNumber: busNumber,
+        numberPlate: numberPlate,
+        busName: busName,
+        driverId: driverId,
+        driverName: driver.name,
+        driverPhone: driver.phone,
+        route: route,
+      );
+      await _repository.updateBus(
+        updatedBus,
+        previousDriverId: previousDriverId,
+      );
+      await loadBuses();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Delete a bus
+  Future<bool> deleteBus(String busId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _repository.deleteBus(busId);
+      await loadBuses();
+      await loadDrivers();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // --- Driver Actions ---
 
   Future<void> initializeDriver(Faculty driver) async {
     _currentDriver = driver;
     _gpsStatus = 'Inactive';
     _isTracking = false;
+    _assignedBus = null;
     notifyListeners();
     try {
       await loadBuses();
       // Find assigned bus if exists
-      final foundBuses = _buses.where((b) => b.driverId == driver.facultyId).toList();
+      final foundBuses = _buses
+          .where((b) => b.driverId == driver.facultyId)
+          .toList();
       if (foundBuses.isNotEmpty) {
         _assignedBus = foundBuses.first;
-      } else if (driver.assignedBusId != null && driver.assignedBusId!.isNotEmpty) {
-        final matching = _buses.where((b) => b.busId == driver.assignedBusId).toList();
+      } else if (driver.assignedBusId != null &&
+          driver.assignedBusId!.isNotEmpty) {
+        final matching = _buses
+            .where((b) => b.busId == driver.assignedBusId)
+            .toList();
         if (matching.isNotEmpty) {
           _assignedBus = matching.first;
         }
       }
 
-      _assignedBus ??= Bus(
-        busId: '',
-        busNumber: '',
-        numberPlate: '',
-        driverId: '',
-        driverName: '',
-        driverPhone: '',
-        route: BusRoute(
-          source: BusStop(name: '', latitude: 0.0, longitude: 0.0),
-          destination: BusStop(name: '', latitude: 0.0, longitude: 0.0),
-          stops: [],
-        ),
-      );
-      
-      if (_assignedBus!.busId.isNotEmpty) {
+      if (_assignedBus != null) {
         // Listen to their own tracking state doc
         _activeTrackingSubscription?.cancel();
-        _activeTrackingSubscription = _repository.streamBusTracking(_assignedBus!.busId).listen((state) {
-          if (state != null) {
-            _activeTrackingState = state;
-            _isTracking = state.trackingActive;
-            if (_isTracking && _gpsStatus == 'Waiting') {
-              _gpsStatus = 'Active';
-            }
-            notifyListeners();
-          }
-        });
+        _activeTrackingSubscription = _repository
+            .streamBusTracking(_assignedBus!.busId)
+            .listen((state) {
+              if (state != null) {
+                _activeTrackingState = state;
+                _isTracking = state.trackingActive;
+                if (_isTracking && _gpsStatus == 'Waiting') {
+                  _gpsStatus = 'Active';
+                }
+                notifyListeners();
+              }
+            });
       }
     } catch (e) {
       debugPrint('Driver initialization error: $e');
@@ -236,7 +323,7 @@ class BusTrackingProvider extends ChangeNotifier {
 
   Future<bool> startTracking() async {
     if (_assignedBus == null || _assignedBus!.busId.isEmpty) return false;
-    
+
     final hasPermission = await LocationService.handleLocationPermission();
     if (!hasPermission) {
       _errorMessage = 'GPS permission is required to start tracking.';
@@ -250,74 +337,81 @@ class BusTrackingProvider extends ChangeNotifier {
 
     try {
       await _repository.setTrackingActive(_assignedBus!.busId, true);
-      
+
       // Cancel existing gps subscription if any
       _gpsSubscription?.cancel();
-      
+
       // Start listening to GPS stream
-      _gpsSubscription = LocationService.getPositionStream().listen((Position position) async {
-        _gpsStatus = 'Active';
-        _gpsAccuracy = position.accuracy;
-        _lastUpdateTime = DateTime.now();
-        
-        if (_activeTrackingState != null) {
-          final speedInKmh = position.speed * 3.6; // convert m/s to km/h
-          
-          // Compute stop logic and return new state
-          final newState = RoutingService.updateRouteProgress(
-            currentState: _activeTrackingState!,
-            busLat: position.latitude,
-            busLng: position.longitude,
-            speed: speedInKmh,
-          );
-          
-          await _repository.updateTrackingState(newState);
-        } else {
-          // If Firestore active state is null, fetch static route and create one
-          final staticBus = await _repository.getBus(_assignedBus!.busId);
-          if (staticBus != null) {
-            final initialState = BusTrackingState(
-              busId: staticBus.busId,
-              driverId: staticBus.driverId,
-              latitude: position.latitude,
-              longitude: position.longitude,
-              currentSpeed: position.speed * 3.6,
-              timestamp: DateTime.now(),
-              currentStop: staticBus.route.source.name,
-              nextStop: staticBus.route.stops.isNotEmpty ? staticBus.route.stops.first.name : staticBus.route.destination.name,
-              distanceToNextStop: 0.0,
-              eta: '--',
-              trackingActive: true,
-              stopsStatus: [
-                RouteStopStatus(
-                  name: staticBus.route.source.name,
-                  latitude: staticBus.route.source.latitude,
-                  longitude: staticBus.route.source.longitude,
-                  status: 'current',
-                ),
-                ...staticBus.route.stops.map((s) => RouteStopStatus(
+      _gpsSubscription = LocationService.getPositionStream().listen(
+        (Position position) async {
+          _gpsStatus = 'Active';
+          _gpsAccuracy = position.accuracy;
+          _lastUpdateTime = DateTime.now();
+
+          if (_activeTrackingState != null) {
+            final speedInKmh = position.speed * 3.6; // convert m/s to km/h
+
+            // Compute stop logic and return new state
+            final newState = RoutingService.updateRouteProgress(
+              currentState: _activeTrackingState!,
+              busLat: position.latitude,
+              busLng: position.longitude,
+              speed: speedInKmh,
+            );
+
+            await _repository.updateTrackingState(newState);
+          } else {
+            // If Firestore active state is null, fetch static route and create one
+            final staticBus = await _repository.getBus(_assignedBus!.busId);
+            if (staticBus != null) {
+              final initialState = BusTrackingState(
+                busId: staticBus.busId,
+                driverId: staticBus.driverId,
+                latitude: position.latitude,
+                longitude: position.longitude,
+                currentSpeed: position.speed * 3.6,
+                timestamp: DateTime.now(),
+                currentStop: staticBus.route.source.name,
+                nextStop: staticBus.route.stops.isNotEmpty
+                    ? staticBus.route.stops.first.name
+                    : staticBus.route.destination.name,
+                distanceToNextStop: 0.0,
+                eta: '--',
+                trackingActive: true,
+                stopsStatus: [
+                  RouteStopStatus(
+                    name: staticBus.route.source.name,
+                    latitude: staticBus.route.source.latitude,
+                    longitude: staticBus.route.source.longitude,
+                    status: 'current',
+                  ),
+                  ...staticBus.route.stops.map(
+                    (s) => RouteStopStatus(
                       name: s.name,
                       latitude: s.latitude,
                       longitude: s.longitude,
                       status: 'upcoming',
-                    )),
-                RouteStopStatus(
-                  name: staticBus.route.destination.name,
-                  latitude: staticBus.route.destination.latitude,
-                  longitude: staticBus.route.destination.longitude,
-                  status: 'upcoming',
-                ),
-              ],
-            );
-            await _repository.updateTrackingState(initialState);
+                    ),
+                  ),
+                  RouteStopStatus(
+                    name: staticBus.route.destination.name,
+                    latitude: staticBus.route.destination.latitude,
+                    longitude: staticBus.route.destination.longitude,
+                    status: 'upcoming',
+                  ),
+                ],
+              );
+              await _repository.updateTrackingState(initialState);
+            }
           }
-        }
-        notifyListeners();
-      }, onError: (e) {
-        _gpsStatus = 'Inactive';
-        _isTracking = false;
-        notifyListeners();
-      });
+          notifyListeners();
+        },
+        onError: (e) {
+          _gpsStatus = 'Inactive';
+          _isTracking = false;
+          notifyListeners();
+        },
+      );
 
       return true;
     } catch (e) {
@@ -330,7 +424,7 @@ class BusTrackingProvider extends ChangeNotifier {
 
   Future<void> stopTracking() async {
     if (_assignedBus == null || _assignedBus!.busId.isEmpty) return;
-    
+
     _gpsSubscription?.cancel();
     _gpsSubscription = null;
     _gpsStatus = 'Inactive';
@@ -349,7 +443,9 @@ class BusTrackingProvider extends ChangeNotifier {
   // Listen to all tracking records to show active indicators on cards
   void startAllTrackingStream() {
     _allTrackingSubscription?.cancel();
-    _allTrackingSubscription = _repository.streamAllActiveTracking().listen((states) {
+    _allTrackingSubscription = _repository.streamAllActiveTracking().listen((
+      states,
+    ) {
       _allTrackingStates = states;
       notifyListeners();
     });
@@ -369,8 +465,11 @@ class BusTrackingProvider extends ChangeNotifier {
       _matchingBuses = _buses.where((bus) {
         final numberMatch = bus.busNumber.toLowerCase().contains(q);
         final routeNameMatch = (bus.busName ?? '').toLowerCase().contains(q);
-        final stopsMatch = bus.route.stops.any((s) => s.name.toLowerCase().contains(q));
-        final sourceDestMatch = bus.route.source.name.toLowerCase().contains(q) ||
+        final stopsMatch = bus.route.stops.any(
+          (s) => s.name.toLowerCase().contains(q),
+        );
+        final sourceDestMatch =
+            bus.route.source.name.toLowerCase().contains(q) ||
             bus.route.destination.name.toLowerCase().contains(q);
         return numberMatch || routeNameMatch || stopsMatch || sourceDestMatch;
       }).toList();
@@ -381,7 +480,9 @@ class BusTrackingProvider extends ChangeNotifier {
   // Listen to single bus location updates for student
   void listenToBusLive(String busId) {
     _activeTrackingSubscription?.cancel();
-    _activeTrackingSubscription = _repository.streamBusTracking(busId).listen((state) {
+    _activeTrackingSubscription = _repository.streamBusTracking(busId).listen((
+      state,
+    ) {
       _activeTrackingState = state;
       notifyListeners();
     });

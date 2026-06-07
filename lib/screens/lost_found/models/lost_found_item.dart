@@ -9,6 +9,7 @@ class LostFoundItem {
   final String createdBy; // Firebase Auth UID
   final String createdByName;
   final DateTime createdAt;
+  final DateTime? expiresAt;
 
   LostFoundItem({
     required this.id,
@@ -19,6 +20,7 @@ class LostFoundItem {
     required this.createdBy,
     required this.createdByName,
     required this.createdAt,
+    this.expiresAt,
   });
 
   factory LostFoundItem.fromFirestore(DocumentSnapshot doc) {
@@ -32,6 +34,7 @@ class LostFoundItem {
       createdBy: data['createdBy'] ?? '',
       createdByName: data['createdByName'] ?? 'Unknown',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      expiresAt: (data['expiresAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -44,6 +47,7 @@ class LostFoundItem {
       'createdBy': createdBy,
       'createdByName': createdByName,
       'createdAt': Timestamp.fromDate(createdAt),
+      'expiresAt': expiresAt != null ? Timestamp.fromDate(expiresAt!) : null,
     };
   }
 }

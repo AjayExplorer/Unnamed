@@ -32,7 +32,6 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
     super.dispose();
   }
 
-  // ─── Add‑item bottom sheet ────────────────────────────────────────────
   void _showAddItemSheet(BuildContext context, String type) {
     final keywordCtrl = TextEditingController();
     final descCtrl = TextEditingController();
@@ -62,7 +61,6 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Handle
                       Center(
                         child: Container(
                           width: 40,
@@ -75,7 +73,9 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
                         ),
                       ),
                       Text(
-                        type == 'lost' ? 'Report Lost Item' : 'Report Found Item',
+                        type == 'lost'
+                            ? 'Report Lost Item'
+                            : 'Report Found Item',
                         style: const TextStyle(
                           color: Color(0xFF101828),
                           fontSize: 20,
@@ -129,7 +129,9 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
                             imageUrlCtrl.text,
                           ),
                           child: Text(
-                            type == 'lost' ? 'Post Lost Item' : 'Post Found Item',
+                            type == 'lost'
+                                ? 'Post Lost Item'
+                                : 'Post Found Item',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -177,8 +179,10 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
             hintStyle: const TextStyle(color: Color(0xFF98A2B3)),
             filled: true,
             fillColor: const Color(0xFFF1F3F4),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -205,6 +209,7 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
         FirebaseAuth.instance.currentUser?.uid ?? currentStudent?.id ?? '';
     final name = currentStudent?.fullName ?? 'Unknown';
 
+    final createdAt = DateTime.now();
     final item = LostFoundItem(
       id: '',
       type: type,
@@ -213,14 +218,15 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
       imageUrl: imageUrl.trim(),
       createdBy: uid,
       createdByName: name,
-      createdAt: DateTime.now(),
+      createdAt: createdAt,
+      expiresAt: createdAt.add(const Duration(days: 2)),
     );
 
     final provider = context.read<LostFoundProvider>();
     final success = await provider.addItem(item);
 
     if (!ctx.mounted) return;
-    Navigator.of(ctx).pop(); // close bottom sheet
+    Navigator.of(ctx).pop();
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -233,7 +239,6 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
     }
   }
 
-  // ─── Sort dialog ──────────────────────────────────────────────────────
   void _showSortDialog(BuildContext context) {
     final provider = context.read<LostFoundProvider>();
     showDialog(
@@ -241,11 +246,15 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
       builder: (ctx) {
         return SimpleDialog(
           backgroundColor: Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text(
             'Sort By',
-            style: TextStyle(color: Color(0xFF101828), fontWeight: FontWeight.w700),
+            style: TextStyle(
+              color: Color(0xFF101828),
+              fontWeight: FontWeight.w700,
+            ),
           ),
           children: [
             _sortOption(ctx, provider, 'latest', 'Latest First'),
@@ -257,8 +266,12 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
     );
   }
 
-  Widget _sortOption(BuildContext ctx, LostFoundProvider provider,
-      String value, String label) {
+  Widget _sortOption(
+    BuildContext ctx,
+    LostFoundProvider provider,
+    String value,
+    String label,
+  ) {
     final isSelected = provider.sortBy == value;
     final themeColor = provider.selectedType == 'lost'
         ? const Color(0xFFEF6C50)
@@ -279,7 +292,9 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? const Color(0xFF101828) : const Color(0xFF667085),
+              color: isSelected
+                  ? const Color(0xFF101828)
+                  : const Color(0xFF667085),
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               fontSize: 15,
             ),
@@ -289,7 +304,6 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
     );
   }
 
-  // ─── Build ────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<LostFoundProvider>();
@@ -302,8 +316,11 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
@@ -335,7 +352,6 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            // ── Segmented tabs ──
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
               child: Container(
@@ -346,14 +362,22 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
                 ),
                 child: Row(
                   children: [
-                    _tabButton('lost', 'Lost', const Color(0xFFEF6C50), provider),
                     _tabButton(
-                        'found', 'Found', const Color(0xFF31A25C), provider),
+                      'lost',
+                      'Lost',
+                      const Color(0xFFEF6C50),
+                      provider,
+                    ),
+                    _tabButton(
+                      'found',
+                      'Found',
+                      const Color(0xFF31A25C),
+                      provider,
+                    ),
                   ],
                 ),
               ),
             ),
-            // ── Search bar ──
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
               child: TextField(
@@ -364,8 +388,10 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
                 decoration: InputDecoration(
                   hintText: 'Search items…',
                   hintStyle: const TextStyle(color: Color(0xFF667085)),
-                  prefixIcon:
-                      const Icon(Icons.search_rounded, color: Color(0xFF667085)),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: Color(0xFF667085),
+                  ),
                   filled: true,
                   fillColor: const Color(0xFFF1F3F4),
                   contentPadding: const EdgeInsets.symmetric(vertical: 0),
@@ -376,12 +402,10 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
                 ),
               ),
             ),
-            // ── Content ──
             Expanded(child: _buildBody(provider)),
           ],
         ),
       ),
-      // ── FAB ──
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showTypeChooser(context),
         backgroundColor: provider.selectedType == 'lost'
@@ -389,8 +413,10 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
             : const Color(0xFF31A25C),
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Report',
-            style: TextStyle(fontWeight: FontWeight.w700)),
+        label: const Text(
+          'Report',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
     );
   }
@@ -433,13 +459,23 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: _typeButton(ctx, 'lost', 'I Lost Something',
-                          Icons.search_off_rounded, const Color(0xFFEF6C50)),
+                      child: _typeButton(
+                        ctx,
+                        'lost',
+                        'I Lost Something',
+                        Icons.search_off_rounded,
+                        const Color(0xFFEF6C50),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _typeButton(ctx, 'found', 'I Found Something',
-                          Icons.emoji_objects_rounded, const Color(0xFF31A25C)),
+                      child: _typeButton(
+                        ctx,
+                        'found',
+                        'I Found Something',
+                        Icons.emoji_objects_rounded,
+                        const Color(0xFF31A25C),
+                      ),
                     ),
                   ],
                 ),
@@ -451,8 +487,13 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
     );
   }
 
-  Widget _typeButton(BuildContext ctx, String type, String label,
-      IconData icon, Color color) {
+  Widget _typeButton(
+    BuildContext ctx,
+    String type,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
@@ -486,7 +527,11 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
   }
 
   Widget _tabButton(
-      String type, String label, Color activeColor, LostFoundProvider provider) {
+    String type,
+    String label,
+    Color activeColor,
+    LostFoundProvider provider,
+  ) {
     final isActive = provider.selectedType == type;
     return Expanded(
       child: GestureDetector(
@@ -527,8 +572,11 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  color: Color(0xFFEF6C50), size: 48),
+              const Icon(
+                Icons.error_outline_rounded,
+                color: Color(0xFFEF6C50),
+                size: 48,
+              ),
               const SizedBox(height: 12),
               Text(
                 provider.errorMessage!,
@@ -538,8 +586,10 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => provider.loadItems(),
-                child: const Text('Retry',
-                    style: TextStyle(color: Color(0xFF174EA6))),
+                child: const Text(
+                  'Retry',
+                  style: TextStyle(color: Color(0xFF174EA6)),
+                ),
               ),
             ],
           ),
@@ -583,20 +633,17 @@ class _LostAndFoundHomeScreenState extends State<LostAndFoundHomeScreen> {
         final item = provider.items[index];
         return _ItemCard(
           item: item,
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => LostFoundDetailScreen(item: item),
-              ),
-            );
-          },
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => LostFoundDetailScreen(item: item),
+            ),
+          ),
         );
       },
     );
   }
 }
 
-// ─── Item Card ────────────────────────────────────────────────────────────────
 class _ItemCard extends StatelessWidget {
   const _ItemCard({required this.item, this.onTap});
 
@@ -606,8 +653,10 @@ class _ItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLost = item.type == 'lost';
-    final accentColor = isLost ? const Color(0xFFEF6C50) : const Color(0xFF31A25C);
-    final hasImage = item.imageUrl.trim().isNotEmpty;
+    final accentColor = isLost
+        ? const Color(0xFFEF6C50)
+        : const Color(0xFF31A25C);
+    final hasImage = _hasValidImageUrl(item.imageUrl);
 
     return GestureDetector(
       onTap: onTap,
@@ -628,28 +677,51 @@ class _ItemCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: accentColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                image: hasImage
-                    ? DecorationImage(
-                        image: NetworkImage(item.imageUrl),
-                        fit: BoxFit.cover,
-                        onError: (_, __) {},
-                      )
-                    : null,
               ),
-              child: hasImage
-                  ? null
-                  : Icon(
-                      isLost
-                          ? Icons.search_off_rounded
-                          : Icons.emoji_objects_rounded,
-                      color: accentColor.withValues(alpha: 0.4),
-                      size: 32,
-                    ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: hasImage
+                    ? Image.network(
+                        item.imageUrl.trim(),
+                        width: 80,
+                        height: 90,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Icon(
+                              isLost
+                                  ? Icons.search_off_rounded
+                                  : Icons.emoji_objects_rounded,
+                              color: accentColor.withValues(alpha: 0.4),
+                              size: 32,
+                            ),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Icon(
+                          isLost
+                              ? Icons.search_off_rounded
+                              : Icons.emoji_objects_rounded,
+                          color: accentColor.withValues(alpha: 0.4),
+                          size: 32,
+                        ),
+                      ),
+              ),
             ),
             // Details
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 4,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -657,7 +729,9 @@ class _ItemCard extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: accentColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
@@ -680,7 +754,6 @@ class _ItemCard extends StatelessWidget {
                             fontSize: 11,
                           ),
                         ),
-                        const SizedBox(width: 8),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -722,6 +795,12 @@ class _ItemCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  bool _hasValidImageUrl(String url) {
+    final trimmed = url.trim();
+    final uri = Uri.tryParse(trimmed);
+    return uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
   }
 
   String _formatDate(DateTime date) {

@@ -503,7 +503,9 @@ class _AddFacultyFormState extends State<_AddFacultyForm> {
             ? FacultyRole.teacher
             : _selectedRole == 'hod'
                 ? FacultyRole.hod
-                : FacultyRole.principal,
+                : _selectedRole == 'driver'
+                    ? FacultyRole.driver
+                    : FacultyRole.principal,
       );
 
       final success = await widget.provider.addFaculty(faculty);
@@ -592,6 +594,7 @@ class _AddFacultyFormState extends State<_AddFacultyForm> {
                 DropdownMenuItem(value: 'teacher', child: Text('Teacher')),
                 DropdownMenuItem(value: 'hod', child: Text('HOD')),
                 DropdownMenuItem(value: 'principal', child: Text('Principal')),
+                DropdownMenuItem(value: 'driver', child: Text('Driver')),
               ],
               onChanged: (value) => setState(() => _selectedRole = value ?? 'teacher'),
             ),
@@ -706,7 +709,9 @@ class _EditFacultyDialogState extends State<_EditFacultyDialog> {
             ? FacultyRole.teacher
             : _selectedRole == 'hod'
                 ? FacultyRole.hod
-                : FacultyRole.principal,
+                : _selectedRole == 'driver'
+                    ? FacultyRole.driver
+                    : FacultyRole.principal,
       );
 
       final success = await widget.provider.updateFaculty(updatedFaculty);
@@ -780,6 +785,7 @@ class _EditFacultyDialogState extends State<_EditFacultyDialog> {
                 DropdownMenuItem(value: 'teacher', child: Text('Teacher')),
                 DropdownMenuItem(value: 'hod', child: Text('HOD')),
                 DropdownMenuItem(value: 'principal', child: Text('Principal')),
+                DropdownMenuItem(value: 'driver', child: Text('Driver')),
               ],
               onChanged: (value) => setState(() => _selectedRole = value ?? 'teacher'),
               decoration: InputDecoration(
