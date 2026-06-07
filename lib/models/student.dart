@@ -11,6 +11,7 @@ class Student {
   final String photoUrl;
   final String department;
   final DateTime registrationDate;
+  final int greenPoints;
 
   Student({
     this.id,
@@ -23,6 +24,7 @@ class Student {
     this.photoUrl = '',
     this.department = '',
     DateTime? registrationDate,
+    this.greenPoints = 0,
   }) : registrationDate = registrationDate ?? DateTime.now();
 
   // Convert Student to Map for Firestore
@@ -37,6 +39,7 @@ class Student {
       'photoUrl': photoUrl,
       'department': department,
       'registrationDate': Timestamp.fromDate(registrationDate),
+      'greenPoints': greenPoints,
     };
   }
 
@@ -53,6 +56,7 @@ class Student {
       photoUrl: map['photoUrl'] ?? '',
       department: map['department'] ?? '',
       registrationDate: (map['registrationDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      greenPoints: map['greenPoints'] ?? 0,
     );
   }
 
@@ -73,6 +77,7 @@ class Student {
     String? photoUrl,
     String? department,
     DateTime? registrationDate,
+    int? greenPoints,
   }) {
     return Student(
       id: id ?? this.id,
@@ -85,6 +90,7 @@ class Student {
       photoUrl: photoUrl ?? this.photoUrl,
       department: department ?? this.department,
       registrationDate: registrationDate ?? this.registrationDate,
+      greenPoints: greenPoints ?? this.greenPoints,
     );
   }
 
@@ -92,7 +98,7 @@ class Student {
   String toString() {
     return 'Student(id: $id, fullName: $fullName, phoneNumber: $phoneNumber, '
         'admissionNumber: $admissionNumber, place: $place, bloodGroup: $bloodGroup, '
-        'photoUrl: $photoUrl, department: $department, registrationDate: $registrationDate)';
+        'photoUrl: $photoUrl, department: $department, registrationDate: $registrationDate, greenPoints: $greenPoints)';
   }
 
   @override
@@ -107,7 +113,8 @@ class Student {
           place == other.place &&
           bloodGroup == other.bloodGroup &&
           photoUrl == other.photoUrl &&
-          department == other.department;
+          department == other.department &&
+          greenPoints == other.greenPoints;
 
   @override
   int get hashCode =>
@@ -118,5 +125,6 @@ class Student {
       place.hashCode ^
       bloodGroup.hashCode ^
       photoUrl.hashCode ^
-      department.hashCode;
+      department.hashCode ^
+      greenPoints.hashCode;
 }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/student.dart';
+import '../models/green_campus_request.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -146,6 +147,45 @@ class DatabaseService {
       return snapshot.docs.map((doc) => Student.fromSnapshot(doc)).toList();
     } catch (e) {
       throw Exception('Error fetching recent students: $e');
+    }
+  }
+
+  /// Submit a new photo verification request
+  Future<void> submitGreenCampusRequest(GreenCampusRequest request) async {
+    try {
+      await _firestore
+          .collection('green_campus_requests')
+          .add(request.toMap());
+    } catch (e) {
+      throw Exception('Error submitting photo verification request: $e');
+    }
+  }
+
+  /// Approve a green campus request: add 5 green points to student and delete the request
+  Future<void> approveGreenCampusRequest(String studentId, String requestId) async {
+    try {
+      final studentDoc = _firestore.collection(_studentsCollection).doc(studentId);
+      final requestDoc = _firestore.collection('green_campus_requests').doc(requestId);
+
+      await _firestore.runTransaction((transaction) async {
+        final studentSnapshot = await transaction.get(studentDoc);
+        if (studentSnapshot.exists) {
+          final currentPoints = studentSnapshot.data()?['greenPoints'] ?? 0;
+          transaction.update(studentDoc, {'greenPoints': currentPoints + 5});
+        }
+        transaction.delete(requestDoc);
+      });
+    } catch (e) {
+      throw Exception('Error approving green campus request: $e');
+    }
+  }
+
+  /// Reject/Delete a green campus request
+  Future<void> rejectGreenCampusRequest(String requestId) async {
+    try {
+      await _firestore.collection('green_campus_requests').doc(requestId).delete();
+    } catch (e) {
+      throw Exception('Error rejecting green campus request: $e');
     }
   }
 }
