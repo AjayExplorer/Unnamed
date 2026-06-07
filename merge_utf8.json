@@ -1,0 +1,16 @@
+﻿{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "hari-open-source-project",
+          "appId": "1:982167399947:android:4eaf145b825863a214610e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "hari-open-source-project",
+          "configurations": {
+            "android": "1:982167399947:android:4eaf145b825863a214610e",
+            "ios": "1:982167399947:ios:985c94597bc15d2414610e",
