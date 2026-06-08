@@ -126,9 +126,15 @@ class _StudentLiveTrackingScreenState extends State<StudentLiveTrackingScreen> {
                 ? AnimatedBusMap(
                     busLocation: LatLng(tracking.latitude, tracking.longitude),
                     studentLocation: _studentLocation,
-                    sourceLocation: LatLng(bus.route.source.latitude, bus.route.source.longitude),
-                    destinationLocation: LatLng(bus.route.destination.latitude, bus.route.destination.longitude),
-                    stopLocations: bus.route.stops.map((s) => LatLng(s.latitude, s.longitude)).toList(),
+                    sourceLocation: tracking.direction == 'from_college'
+                        ? LatLng(bus.route.destination.latitude, bus.route.destination.longitude)
+                        : LatLng(bus.route.source.latitude, bus.route.source.longitude),
+                    destinationLocation: tracking.direction == 'from_college'
+                        ? LatLng(bus.route.source.latitude, bus.route.source.longitude)
+                        : LatLng(bus.route.destination.latitude, bus.route.destination.longitude),
+                    stopLocations: tracking.direction == 'from_college'
+                        ? bus.route.stops.reversed.map((s) => LatLng(s.latitude, s.longitude)).toList()
+                        : bus.route.stops.map((s) => LatLng(s.latitude, s.longitude)).toList(),
                     trackingActive: isLive,
                   )
                 : Center(

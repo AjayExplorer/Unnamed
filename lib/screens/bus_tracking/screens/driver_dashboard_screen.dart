@@ -11,6 +11,8 @@ class DriverDashboardScreen extends StatefulWidget {
 }
 
 class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
+  String? _selectedDirection;
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +35,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             ElevatedButton(
               onPressed: () {
                 context.read<BusTrackingProvider>().stopTracking();
+                setState(() {
+                  _selectedDirection = null;
+                });
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
@@ -55,6 +60,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final driver = provider.currentDriver;
     final bus = provider.assignedBus;
     final tracking = provider.activeTrackingState;
+
+    if (provider.isTracking && tracking != null && _selectedDirection == null) {
+      _selectedDirection = tracking.direction;
+    }
 
     const primaryBlue = Color(0xFF174EA6);
     const secondaryTeal = Color(0xFF0F766E);
@@ -275,6 +284,140 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
+
+                  // 2.5 Route Direction Selector
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    elevation: 2,
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Select Trip Direction',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                              color: Color(0xFF101828),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: provider.isTracking
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            _selectedDirection = 'to_college';
+                                          });
+                                        },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: _selectedDirection == 'to_college'
+                                          ? primaryBlue.withOpacity(0.1)
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                        color: _selectedDirection == 'to_college'
+                                            ? primaryBlue
+                                            : const Color(0xFFD0D5DD),
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.school_outlined,
+                                            color: _selectedDirection == 'to_college'
+                                                ? primaryBlue
+                                                : const Color(0xFF667085),
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'To College',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 14,
+                                              color: _selectedDirection == 'to_college'
+                                                  ? primaryBlue
+                                                  : const Color(0xFF344054),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: provider.isTracking
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            _selectedDirection = 'from_college';
+                                          });
+                                        },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: _selectedDirection == 'from_college'
+                                          ? secondaryTeal.withOpacity(0.1)
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                        color: _selectedDirection == 'from_college'
+                                            ? secondaryTeal
+                                            : const Color(0xFFD0D5DD),
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.home_outlined,
+                                            color: _selectedDirection == 'from_college'
+                                                ? secondaryTeal
+                                                : const Color(0xFF667085),
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'From College',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 14,
+                                              color: _selectedDirection == 'from_college'
+                                                  ? secondaryTeal
+                                                  : const Color(0xFF344054),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
 
                   // 3. Main Controls
@@ -283,9 +426,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     width: double.infinity,
                     height: 58,
                     child: ElevatedButton.icon(
-                      onPressed: provider.isTracking
+                      onPressed: (provider.isTracking || _selectedDirection == null)
                           ? null
-                          : () => provider.startTracking(),
+                          : () => provider.startTracking(direction: _selectedDirection!),
                       icon: const Icon(Icons.play_circle_fill, size: 28),
                       label: const Text(
                         'START BROADCASTING',

@@ -16,6 +16,8 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
   final _addressController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _profilePhotoController = TextEditingController();
   bool _obscurePassword = true;
 
   // Edit mode state
@@ -37,6 +39,8 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
     _addressController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
+    _emailController.dispose();
+    _profilePhotoController.dispose();
     super.dispose();
   }
 
@@ -46,6 +50,8 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
     _addressController.clear();
     _usernameController.clear();
     _passwordController.clear();
+    _emailController.clear();
+    _profilePhotoController.clear();
     setState(() {
       _editingDriverId = null;
     });
@@ -57,6 +63,8 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
     _addressController.text = driver.address ?? '';
     _usernameController.text = driver.username;
     _passwordController.text = driver.password;
+    _emailController.text = driver.email;
+    _profilePhotoController.text = driver.profilePhoto ?? '';
     setState(() {
       _editingDriverId = driver.facultyId;
     });
@@ -81,6 +89,8 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
         address: _addressController.text.trim(),
         username: _usernameController.text.trim(),
         password: _passwordController.text.trim(),
+        email: _emailController.text.trim(),
+        profilePhoto: _profilePhotoController.text.trim().isEmpty ? null : _profilePhotoController.text.trim(),
       );
     } else {
       success = await provider.registerDriver(
@@ -89,6 +99,8 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
         address: _addressController.text.trim(),
         username: _usernameController.text.trim(),
         password: _passwordController.text.trim(),
+        email: _emailController.text.trim(),
+        profilePhoto: _profilePhotoController.text.trim().isEmpty ? null : _profilePhotoController.text.trim(),
       );
     }
 
@@ -172,6 +184,26 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
                         validator: (value) => value == null || value.trim().isEmpty ? 'Enter driver full name' : null,
                       ),
                       const SizedBox(height: 16),
+                      // Email Detail
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: 'Email Address',
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Enter email address';
+                          }
+                          if (!value.contains('@') || !value.contains('.')) {
+                            return 'Enter a valid email address';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
                       // Phone Number
                       TextFormField(
                         controller: _phoneController,
@@ -182,6 +214,25 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         validator: (value) => value == null || value.trim().isEmpty ? 'Enter phone number' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      // Profile Photo URL
+                      TextFormField(
+                        controller: _profilePhotoController,
+                        maxLines: 1,
+                        decoration: InputDecoration(
+                          labelText: 'Profile Photo URL',
+                          prefixIcon: const Icon(Icons.image_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        validator: (value) {
+                          if (value != null && value.trim().isNotEmpty) {
+                            if (!value.trim().startsWith('http://') && !value.trim().startsWith('https://')) {
+                              return 'Enter a valid URL starting with http:// or https://';
+                            }
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Address
@@ -349,6 +400,9 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
                               CircleAvatar(
                                 radius: 22,
                                 backgroundColor: primaryBlue.withOpacity(0.1),
+                                foregroundImage: (driver.profilePhoto != null && driver.profilePhoto!.isNotEmpty)
+                                    ? NetworkImage(driver.profilePhoto!)
+                                    : null,
                                 child: const Icon(Icons.person, color: primaryBlue),
                               ),
                               const SizedBox(width: 12),
@@ -367,6 +421,11 @@ class _AdminDriverRegistrationScreenState extends State<AdminDriverRegistrationS
                                     const SizedBox(height: 2),
                                     Text(
                                       'Username: ${driver.username}',
+                                      style: const TextStyle(fontSize: 12, color: Color(0xFF667085)),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Email: ${driver.email}',
                                       style: const TextStyle(fontSize: 12, color: Color(0xFF667085)),
                                     ),
                                   ],

@@ -286,4 +286,29 @@ class BusTrackingRepository {
       throw Exception('Error setting tracking status: $e');
     }
   }
+
+  // Cleanup bus tracking records that haven't been updated for 4 hours
+  Future<void> cleanExpiredTracking() async {
+    try {
+      final now = DateTime.now();
+      final snapshot = await _firestore.collection('bus_tracking').get();
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final timestampVal = data['timestamp'];
+        DateTime? lastTime;
+        if (timestampVal is Timestamp) {
+          lastTime = timestampVal.toDate();
+        } else if (timestampVal is String) {
+          lastTime = DateTime.tryParse(timestampVal);
+        }
+        if (lastTime != null) {
+          if (now.difference(lastTime).inHours >= 4) {
+            await doc.reference.delete();
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
 }

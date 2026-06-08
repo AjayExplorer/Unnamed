@@ -12,6 +12,7 @@ class DriverProfileScreen extends StatefulWidget {
 class _DriverProfileScreenState extends State<DriverProfileScreen> {
   final _urlController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  String _previewUrl = '';
 
   @override
   void initState() {
@@ -19,7 +20,13 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     final driver = context.read<BusTrackingProvider>().currentDriver;
     if (driver != null) {
       _urlController.text = driver.profilePhoto ?? '';
+      _previewUrl = driver.profilePhoto ?? '';
     }
+    _urlController.addListener(() {
+      setState(() {
+        _previewUrl = _urlController.text.trim();
+      });
+    });
   }
 
   @override
@@ -63,7 +70,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: driver == null || bus == null
+      body: driver == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20.0),
@@ -125,27 +132,35 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           _buildProfileRow(
                             Icons.directions_bus_outlined,
                             'Assigned Bus',
-                            bus.busNumber.isEmpty
-                                ? 'No bus assigned'
+                            bus == null || bus.busNumber.isEmpty
+                                ? 'Not assigned'
                                 : bus.busNumber,
                           ),
                           const Divider(height: 24),
                           _buildProfileRow(
                             Icons.pin_outlined,
                             'Number Plate',
-                            bus.numberPlate.isEmpty ? '--' : bus.numberPlate,
+                            bus == null || bus.numberPlate.isEmpty
+                                ? '--'
+                                : bus.numberPlate,
                           ),
                           const Divider(height: 24),
                           _buildProfileRow(
                             Icons.route_outlined,
                             'Route Name',
-                            bus.busName ?? 'No route name',
+                            bus?.busName ?? 'No route name',
                           ),
                           const Divider(height: 24),
                           _buildProfileRow(
                             Icons.phone_outlined,
                             'Phone Number',
                             driver.phone,
+                          ),
+                          const Divider(height: 24),
+                          _buildProfileRow(
+                            Icons.email_outlined,
+                            'Email Address',
+                            driver.email,
                           ),
                           const Divider(height: 24),
                           _buildProfileRow(
@@ -211,26 +226,60 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 48,
-                              child: ElevatedButton(
-                                onPressed: _updatePhotoUrl,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: primaryBlue,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: const Text(
-                                  'Update Profile Image',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
+                             // Live preview thumbnail
+                             if (_previewUrl.isNotEmpty &&
+                                 (_previewUrl.startsWith('http://') ||
+                                     _previewUrl.startsWith('https://'))) ...
+                               [
+                                 const SizedBox(height: 16),
+                                 Center(
+                                   child: Column(
+                                     children: [
+                                       const Text(
+                                         'Preview',
+                                         style: TextStyle(
+                                           fontSize: 12,
+                                           fontWeight: FontWeight.w600,
+                                           color: Color(0xFF667085),
+                                         ),
+                                       ),
+                                       const SizedBox(height: 8),
+                                       CircleAvatar(
+                                         radius: 40,
+                                         backgroundColor: const Color(0xFFE4E7EC),
+                                         foregroundImage:
+                                             NetworkImage(_previewUrl),
+                                         onForegroundImageError: (_, __) {},
+                                         child: const Icon(
+                                           Icons.broken_image_outlined,
+                                           size: 36,
+                                           color: Color(0xFF98A2B3),
+                                         ),
+                                       ),
+                                     ],
+                                   ),
+                                 ),
+                               ],
+                             const SizedBox(height: 16),
+                             SizedBox(
+                               width: double.infinity,
+                               height: 48,
+                               child: ElevatedButton(
+                                 onPressed: _updatePhotoUrl,
+                                 style: ElevatedButton.styleFrom(
+                                   backgroundColor: primaryBlue,
+                                   foregroundColor: Colors.white,
+                                   shape: RoundedRectangleBorder(
+                                     borderRadius: BorderRadius.circular(12),
+                                   ),
+                                   elevation: 0,
+                                 ),
+                                 child: const Text(
+                                   'Update Profile Image',
+                                   style: TextStyle(fontWeight: FontWeight.bold),
+                                 ),
+                               ),
+                             ),
                           ],
                         ),
                       ),

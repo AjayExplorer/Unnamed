@@ -71,6 +71,7 @@ class BusTrackingProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
+      await _repository.cleanExpiredTracking();
       _buses = await _repository.getAllBuses();
       _matchingBuses = List.from(_buses);
     } catch (e) {
@@ -86,6 +87,8 @@ class BusTrackingProvider extends ChangeNotifier {
     required String address,
     required String username,
     required String password,
+    required String email,
+    String? profilePhoto,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -100,10 +103,11 @@ class BusTrackingProvider extends ChangeNotifier {
         username: username,
         password: password,
         phone: phone,
-        email: '$username@school.com',
+        email: email,
         availabilityStatus: 'Present',
         role: FacultyRole.driver,
         address: address,
+        profilePhoto: profilePhoto,
       );
       await _repository.registerDriver(newDriver);
       await loadDrivers();
@@ -162,6 +166,8 @@ class BusTrackingProvider extends ChangeNotifier {
     required String address,
     required String username,
     required String password,
+    required String email,
+    String? profilePhoto,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -173,6 +179,8 @@ class BusTrackingProvider extends ChangeNotifier {
         'address': address,
         'username': username,
         'password': password,
+        'email': email,
+        'profilePhoto': profilePhoto,
       });
       await loadDrivers();
       _isLoading = false;
@@ -321,7 +329,7 @@ class BusTrackingProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> startTracking() async {
+  Future<bool> startTracking({required String direction}) async {
     if (_assignedBus == null || _assignedBus!.busId.isEmpty) return false;
 
     final hasPermission = await LocationService.handleLocationPermission();
@@ -336,6 +344,91 @@ class BusTrackingProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      await _repository.cleanExpiredTracking();
+
+      final staticBus = await _repository.getBus(_assignedBus!.busId);
+      if (staticBus != null) {
+        List<RouteStopStatus> stopsList = [];
+        String currentStopName = '';
+        String nextStopName = '';
+
+        if (direction == 'from_college') {
+          stopsList = [
+            RouteStopStatus(
+              name: staticBus.route.destination.name,
+              latitude: staticBus.route.destination.latitude,
+              longitude: staticBus.route.destination.longitude,
+              status: 'current',
+            ),
+            ...staticBus.route.stops.reversed.map(
+              (s) => RouteStopStatus(
+                name: s.name,
+                latitude: s.latitude,
+                longitude: s.longitude,
+                status: 'upcoming',
+              ),
+            ),
+            RouteStopStatus(
+              name: staticBus.route.source.name,
+              latitude: staticBus.route.source.latitude,
+              longitude: staticBus.route.source.longitude,
+              status: 'upcoming',
+            ),
+          ];
+          currentStopName = staticBus.route.destination.name;
+          nextStopName = staticBus.route.stops.isNotEmpty
+              ? staticBus.route.stops.last.name
+              : staticBus.route.source.name;
+        } else {
+          stopsList = [
+            RouteStopStatus(
+              name: staticBus.route.source.name,
+              latitude: staticBus.route.source.latitude,
+              longitude: staticBus.route.source.longitude,
+              status: 'current',
+            ),
+            ...staticBus.route.stops.map(
+              (s) => RouteStopStatus(
+                name: s.name,
+                latitude: s.latitude,
+                longitude: s.longitude,
+                status: 'upcoming',
+              ),
+            ),
+            RouteStopStatus(
+              name: staticBus.route.destination.name,
+              latitude: staticBus.route.destination.latitude,
+              longitude: staticBus.route.destination.longitude,
+              status: 'upcoming',
+            ),
+          ];
+          currentStopName = staticBus.route.source.name;
+          nextStopName = staticBus.route.stops.isNotEmpty
+              ? staticBus.route.stops.first.name
+              : staticBus.route.destination.name;
+        }
+
+        final initialState = BusTrackingState(
+          busId: staticBus.busId,
+          driverId: staticBus.driverId,
+          latitude: stopsList.first.latitude,
+          longitude: stopsList.first.longitude,
+          currentSpeed: 0.0,
+          timestamp: DateTime.now(),
+          currentStop: currentStopName,
+          nextStop: nextStopName,
+          distanceToNextStop: 0.0,
+          eta: '--',
+          trackingActive: true,
+          direction: direction,
+          stopsStatus: stopsList,
+          expiresAt: DateTime.now().add(const Duration(hours: 4)),
+        );
+
+        await _repository.updateTrackingState(initialState);
+        _activeTrackingState = initialState;
+      }
+
       await _repository.setTrackingActive(_assignedBus!.busId, true);
 
       // Cancel existing gps subscription if any
@@ -360,49 +453,6 @@ class BusTrackingProvider extends ChangeNotifier {
             );
 
             await _repository.updateTrackingState(newState);
-          } else {
-            // If Firestore active state is null, fetch static route and create one
-            final staticBus = await _repository.getBus(_assignedBus!.busId);
-            if (staticBus != null) {
-              final initialState = BusTrackingState(
-                busId: staticBus.busId,
-                driverId: staticBus.driverId,
-                latitude: position.latitude,
-                longitude: position.longitude,
-                currentSpeed: position.speed * 3.6,
-                timestamp: DateTime.now(),
-                currentStop: staticBus.route.source.name,
-                nextStop: staticBus.route.stops.isNotEmpty
-                    ? staticBus.route.stops.first.name
-                    : staticBus.route.destination.name,
-                distanceToNextStop: 0.0,
-                eta: '--',
-                trackingActive: true,
-                stopsStatus: [
-                  RouteStopStatus(
-                    name: staticBus.route.source.name,
-                    latitude: staticBus.route.source.latitude,
-                    longitude: staticBus.route.source.longitude,
-                    status: 'current',
-                  ),
-                  ...staticBus.route.stops.map(
-                    (s) => RouteStopStatus(
-                      name: s.name,
-                      latitude: s.latitude,
-                      longitude: s.longitude,
-                      status: 'upcoming',
-                    ),
-                  ),
-                  RouteStopStatus(
-                    name: staticBus.route.destination.name,
-                    latitude: staticBus.route.destination.latitude,
-                    longitude: staticBus.route.destination.longitude,
-                    status: 'upcoming',
-                  ),
-                ],
-              );
-              await _repository.updateTrackingState(initialState);
-            }
           }
           notifyListeners();
         },
@@ -443,6 +493,7 @@ class BusTrackingProvider extends ChangeNotifier {
   // Listen to all tracking records to show active indicators on cards
   void startAllTrackingStream() {
     _allTrackingSubscription?.cancel();
+    _repository.cleanExpiredTracking();
     _allTrackingSubscription = _repository.streamAllActiveTracking().listen((
       states,
     ) {

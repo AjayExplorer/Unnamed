@@ -60,6 +60,7 @@ class BusTrackingState {
   final bool trackingActive;
   final List<RouteStopStatus> stopsStatus;
   final DateTime? expiresAt;
+  final String? direction; // 'to_college' or 'from_college'
 
   BusTrackingState({
     required this.busId,
@@ -75,6 +76,7 @@ class BusTrackingState {
     required this.trackingActive,
     required this.stopsStatus,
     this.expiresAt,
+    this.direction,
   });
 
   Map<String, dynamic> toMap() {
@@ -92,6 +94,7 @@ class BusTrackingState {
       'trackingActive': trackingActive,
       'stopsStatus': stopsStatus.map((x) => x.toMap()).toList(),
       'expiresAt': expiresAt != null ? Timestamp.fromDate(expiresAt!) : null,
+      'direction': direction,
     };
   }
 
@@ -138,6 +141,7 @@ class BusTrackingState {
               .toList() ??
           [],
       expiresAt: expiresAtTime,
+      direction: map['direction'],
     );
   }
 }
