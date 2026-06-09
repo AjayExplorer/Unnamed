@@ -332,8 +332,280 @@ class _GreenCampusScreenState extends State<GreenCampusScreen> {
                       ),
                     );
                   },
-                ),
+                 ),
                 const SizedBox(height: 24),
+
+                // Real-time green campus card StreamBuilder
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('green_campus_cards')
+                      .doc(currentStudent.id)
+                      .snapshots(),
+                  builder: (context, cardSnapshot) {
+                    if (!cardSnapshot.hasData) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final bool cardExists = cardSnapshot.data!.exists;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'YOUR REWARD CARD',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white38,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        cardExists
+                            ? (() {
+                                final cardData = cardSnapshot.data!.data() as Map<String, dynamic>;
+                                final studentName = cardData['studentName'] ?? 'Unknown';
+                                final studentAdmission = cardData['studentAdmission'] ?? 'Unknown';
+                                final studentPhone = cardData['studentPhone'] ?? '';
+                                final studentDept = cardData['studentDepartment'] ?? '';
+                                final cardNumber = cardData['cardNumber'] ?? 'GC-000000';
+                                final level = cardData['level'] ?? 1;
+                                final colorName = (cardData['color'] ?? 'yellow').toString().toLowerCase();
+
+                                List<Color> gradientColors;
+                                Color glowColor;
+                                String levelText;
+
+                                switch (colorName) {
+                                  case 'blue':
+                                    gradientColors = [const Color(0xFF0EA5E9), const Color(0xFF2563EB)];
+                                    glowColor = const Color(0xFF3B82F6);
+                                    levelText = 'Level $level - Blue';
+                                    break;
+                                  case 'green':
+                                    gradientColors = [const Color(0xFF10B981), const Color(0xFF047857)];
+                                    glowColor = const Color(0xFF10B981);
+                                    levelText = 'Level $level - Green';
+                                    break;
+                                  case 'orange':
+                                    gradientColors = [const Color(0xFFF97316), const Color(0xFFC2410C)];
+                                    glowColor = const Color(0xFFF97316);
+                                    levelText = 'Level $level - Orange';
+                                    break;
+                                  case 'red':
+                                    gradientColors = [const Color(0xFFEF4444), const Color(0xFFB91C1C)];
+                                    glowColor = const Color(0xFFEF4444);
+                                    levelText = 'Level $level - Red';
+                                    break;
+                                  case 'yellow':
+                                  default:
+                                    gradientColors = [const Color(0xFFF59E0B), const Color(0xFFB45309)];
+                                    glowColor = const Color(0xFFF59E0B);
+                                    levelText = 'Level $level - Yellow';
+                                    break;
+                                }
+
+                                return Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: gradientColors,
+                                    ),
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: glowColor.withValues(alpha: 0.35),
+                                        blurRadius: 25,
+                                        offset: const Offset(0, 10),
+                                      ),
+                                    ],
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.25),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      Positioned(
+                                        right: -20,
+                                        bottom: -20,
+                                        child: Opacity(
+                                          opacity: 0.12,
+                                          child: const Icon(
+                                            Icons.eco,
+                                            size: 180,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(24.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    const Text(
+                                                      'GREEN CAMPUS',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.w900,
+                                                        letterSpacing: 1.5,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      levelText.toUpperCase(),
+                                                      style: TextStyle(
+                                                        color: Colors.white.withValues(alpha: 0.85),
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.bold,
+                                                        letterSpacing: 1.0,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white.withValues(alpha: 0.2),
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.qr_code_2,
+                                                    color: Colors.white,
+                                                    size: 28,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 24),
+                                            Text(
+                                              studentName.toUpperCase(),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'Admission: $studentAdmission',
+                                              style: TextStyle(
+                                                color: Colors.white.withValues(alpha: 0.9),
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            if (studentDept.isNotEmpty) ...[
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Department: $studentDept',
+                                                style: TextStyle(
+                                                  color: Colors.white.withValues(alpha: 0.9),
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                            if (studentPhone.isNotEmpty) ...[
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Phone: $studentPhone',
+                                                style: TextStyle(
+                                                  color: Colors.white.withValues(alpha: 0.9),
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                            const SizedBox(height: 24),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  cardNumber,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontFamily: 'Courier',
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 2,
+                                                  ),
+                                                ),
+                                                const Icon(
+                                                  Icons.eco_outlined,
+                                                  color: Colors.white70,
+                                                  size: 20,
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              })()
+                            : Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.02),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.08),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.04),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.eco_outlined,
+                                        color: Colors.white.withValues(alpha: 0.3),
+                                        size: 36,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'Unlock Your Reward Card',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Earn at least 100 points to receive your Level 1 Yellow Card. Keep submitting verified disposal photos to level up!',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white.withValues(alpha: 0.5),
+                                        fontSize: 13,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                        const SizedBox(height: 24),
+                      ],
+                    );
+                  },
+                ),
 
                 // Submit disposal photo card
                 Container(

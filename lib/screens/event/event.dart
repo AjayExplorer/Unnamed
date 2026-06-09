@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EventsPage extends StatefulWidget {
   const EventsPage({super.key});
@@ -41,6 +42,8 @@ class _EventsPageState extends State<EventsPage> {
   final nameCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final hostCtrl = TextEditingController();
+  final photoCtrl = TextEditingController();
+  final regCtrl = TextEditingController();
   DateTime? selectedDate;
 
   showModalBottomSheet(
@@ -95,6 +98,22 @@ class _EventsPageState extends State<EventsPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  TextField(
+                    controller: photoCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Event Photo URL (Optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: regCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Registration Link (Optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Event Date'),
@@ -127,21 +146,28 @@ class _EventsPageState extends State<EventsPage> {
                       const SizedBox(width: 12),
                       ElevatedButton(
                         onPressed: () async {
-                          if (nameCtrl.text.isEmpty ||
-                              descCtrl.text.isEmpty ||
-                              hostCtrl.text.isEmpty ||
-                              selectedDate == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('All fields are required')),
-                            );
-                            return;
+                          String photoUrlText = photoCtrl.text.trim();
+                          if (photoUrlText.isNotEmpty &&
+                              !photoUrlText.startsWith('http://') &&
+                              !photoUrlText.startsWith('https://')) {
+                            photoUrlText = 'https://' + photoUrlText;
                           }
+
+                          String regLinkText = regCtrl.text.trim();
+                          if (regLinkText.isNotEmpty &&
+                              !regLinkText.startsWith('http://') &&
+                              !regLinkText.startsWith('https://')) {
+                            regLinkText = 'https://' + regLinkText;
+                          }
+
                           await FirebaseFirestore.instance.collection('events').add({
                             'eventName': nameCtrl.text.trim(),
                             'description': descCtrl.text.trim(),
                             'hostedBy': hostCtrl.text.trim(),
                             'eventDate': Timestamp.fromDate(selectedDate!),
                             'createdAt': Timestamp.now(),
+                            'photoUrl': photoUrlText,
+                            'registrationLink': regLinkText,
                           });
                           if (!mounted) return;
                           Navigator.of(ctx).pop();
@@ -174,6 +200,38 @@ class _EventsPageState extends State<EventsPage> {
     if (days < 3) return Colors.redAccent;
     if (days < 7) return Colors.orangeAccent;
     return Colors.green;
+  }
+
+  bool _isValidImageUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      return uri.hasScheme && (uri.scheme == 'http' || uri.scheme == 'https');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Widget _buildBrokenImageContainer(String url) {
+    return Container(
+      height: 150,
+      color: Colors.grey.shade200,
+      padding: const EdgeInsets.all(12),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.broken_image, color: Colors.grey, size: 36),
+          const SizedBox(height: 8),
+          Text(
+            'Failed to load image:\n$url',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.grey, fontSize: 11),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -251,6 +309,8 @@ class _EventsPageState extends State<EventsPage> {
                     final description = data['description'] ?? '';
                     final hostedBy = data['hostedBy'] ?? '';
                     final eventTimestamp = data['eventDate'] as Timestamp;
+                    final photoUrl = data['photoUrl'] ?? '';
+                    final registrationLink = data['registrationLink'] ?? '';
                     final days = eventTimestamp.toDate().difference(DateTime.now()).inDays;
                     final badgeText = _daysRemaining(eventTimestamp);
                     final badgeCol = _badgeColor(days);
@@ -263,45 +323,107 @@ class _EventsPageState extends State<EventsPage> {
                       ),
                       elevation: 4,
                       margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (photoUrl.trim().isNotEmpty)
+                            _isValidImageUrl(photoUrl.trim())
+                                ? Image.network(
+                                    photoUrl.trim(),
+                                    height: 150,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        _buildBrokenImageContainer(photoUrl.trim()),
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        height: 150,
+                                        color: Colors.grey.shade100,
+                                        alignment: Alignment.center,
+                                        child: const CircularProgressIndicator(),
+                                      );
+                                    },
+                                  )
+                                : _buildBrokenImageContainer(photoUrl.trim()),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  eventName,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        eventName,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: badgeCol,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        badgeText,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: badgeCol,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    badgeText,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
+                                const SizedBox(height: 8),
+                                Text(description),
+                                const SizedBox(height: 8),
+                                Text('Hosted By: $hostedBy'),
+                                const SizedBox(height: 4),
+                                Text('Date: ${DateFormat.yMMMMd().format(eventTimestamp.toDate())}'),
+                                if (registrationLink.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final Uri uri = Uri.parse(registrationLink);
+                                        try {
+                                          if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Could not launch $registrationLink')),
+                                              );
+                                            }
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Error: $e')),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.open_in_new),
+                                      label: const Text('Register for Event'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white.withValues(alpha: 0.8),
+                                        foregroundColor: Colors.black87,
+                                        elevation: 1,
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(description),
-                            const SizedBox(height: 8),
-                            Text('Hosted By: $hostedBy'),
-                            const SizedBox(height: 4),
-                            Text('Date: ${DateFormat.yMMMMd().format(eventTimestamp.toDate())}'),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     );
                   },

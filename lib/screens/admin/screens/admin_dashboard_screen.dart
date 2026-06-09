@@ -20,7 +20,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AdminProvider>().loadDashboard();
     });
@@ -64,6 +64,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
               Tab(text: 'Faculty'),
               Tab(text: 'Alerts'),
               Tab(text: 'Photo Verification'),
+              Tab(text: 'Student Cards'),
             ],
           ),
       ),
@@ -75,6 +76,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           _buildFacultyManagementTab(provider),
           _buildAlertsTab(provider),
           _buildVerificationTab(),
+          _buildStudentCardsTab(),
         ],
       ),
     );
@@ -668,6 +670,262 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                     ),
                   ],
                 ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildStudentCardsTab() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('green_campus_cards').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final cardDocs = snapshot.data?.docs ?? [];
+        
+        final Map<String, List<Map<String, dynamic>>> cardsByColor = {
+          'yellow': [],
+          'blue': [],
+          'green': [],
+          'orange': [],
+          'red': [],
+        };
+
+        for (var doc in cardDocs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final color = (data['color'] ?? 'yellow').toString().toLowerCase();
+          if (cardsByColor.containsKey(color)) {
+            cardsByColor[color]!.add({
+              'id': doc.id,
+              ...data,
+            });
+          } else {
+            cardsByColor['yellow']!.add({
+              'id': doc.id,
+              ...data,
+            });
+          }
+        }
+
+        final colorsOrder = ['yellow', 'blue', 'green', 'orange', 'red'];
+        final colorThemes = {
+          'yellow': {
+            'title': 'Yellow Cards',
+            'baseColor': const Color(0xFFD97706),
+            'bgColor': const Color(0xFFFEF3C7),
+          },
+          'blue': {
+            'title': 'Blue Cards',
+            'baseColor': const Color(0xFF2563EB),
+            'bgColor': const Color(0xFFDBEAFE),
+          },
+          'green': {
+            'title': 'Green Cards',
+            'baseColor': const Color(0xFF059669),
+            'bgColor': const Color(0xFFD1FAE5),
+          },
+          'orange': {
+            'title': 'Orange Cards',
+            'baseColor': const Color(0xFFEA580C),
+            'bgColor': const Color(0xFFFFEDD5),
+          },
+          'red': {
+            'title': 'Red Cards',
+            'baseColor': const Color(0xFFDC2626),
+            'bgColor': const Color(0xFFFEE2E2),
+          },
+        };
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: colorsOrder.length,
+          itemBuilder: (context, index) {
+            final colorKey = colorsOrder[index];
+            final theme = colorThemes[colorKey]!;
+            final list = cardsByColor[colorKey]!;
+
+            final String title = theme['title'] as String;
+            final Color baseColor = theme['baseColor'] as Color;
+            final Color bgColor = theme['bgColor'] as Color;
+
+            return Card(
+              margin: const EdgeInsets.only(bottom: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 2,
+              clipBehavior: Clip.antiAlias,
+              child: ExpansionTile(
+                initiallyExpanded: true,
+                backgroundColor: bgColor.withValues(alpha: 0.15),
+                collapsedBackgroundColor: bgColor.withValues(alpha: 0.05),
+                iconColor: baseColor,
+                collapsedIconColor: baseColor.withValues(alpha: 0.7),
+                title: Row(
+                  children: [
+                    Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: baseColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: baseColor,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: baseColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        list.length.toString(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: baseColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                children: [
+                  if (list.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'No students have acquired a ${title.toLowerCase()} yet.',
+                        style: const TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(12),
+                      itemCount: list.length,
+                      separatorBuilder: (context, _) => const Divider(height: 16, color: Colors.black12),
+                      itemBuilder: (context, studentIndex) {
+                        final card = list[studentIndex];
+                        final studentId = card['id'];
+                        final name = card['studentName'] ?? 'Unknown';
+                        final admission = card['studentAdmission'] ?? 'Unknown';
+                        final phone = card['studentPhone'] ?? '';
+                        final dept = card['studentDepartment'] ?? '';
+                        final number = card['cardNumber'] ?? '';
+                        final cardLevel = card['level'] ?? 1;
+
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: Color(0xFF1F2937),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'Lvl $cardLevel',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(
+                                'Card No: $number',
+                                style: const TextStyle(
+                                  fontFamily: 'Courier',
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF4B5563),
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Admission: $admission' + 
+                                (dept.isNotEmpty ? ' • Dept: $dept' : '') +
+                                (phone.isNotEmpty ? ' • Phone: $phone' : ''),
+                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626)),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Delete Reward Card'),
+                                  content: Text('Are you sure you want to delete the reward card for $name? It will disappear from their green campus page.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
+                                try {
+                                  await DatabaseService().deleteStudentCard(studentId);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Deleted card for $name successfully.'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Failed to delete card: $e')),
+                                    );
+                                  }
+                                }
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                ],
               ),
             );
           },

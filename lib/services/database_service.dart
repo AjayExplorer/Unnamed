@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/student.dart';
 import '../models/green_campus_request.dart';
@@ -161,7 +162,7 @@ class DatabaseService {
     }
   }
 
-  /// Approve a green campus request: add 5 green points to student and delete the request
+  /// Approve a green campus request: add 5 green points to student, create/update card, and delete the request
   Future<void> approveGreenCampusRequest(String studentId, String requestId) async {
     try {
       final studentDoc = _firestore.collection(_studentsCollection).doc(studentId);
@@ -170,8 +171,32 @@ class DatabaseService {
       await _firestore.runTransaction((transaction) async {
         final studentSnapshot = await transaction.get(studentDoc);
         if (studentSnapshot.exists) {
-          final currentPoints = studentSnapshot.data()?['greenPoints'] ?? 0;
-          transaction.update(studentDoc, {'greenPoints': currentPoints + 5});
+          final studentData = studentSnapshot.data() ?? {};
+          final currentPoints = studentData['greenPoints'] ?? 0;
+          final newPoints = currentPoints + 5;
+          transaction.update(studentDoc, {'greenPoints': newPoints});
+
+          // Level card logic
+          final newLevel = newPoints ~/ 100;
+          if (newLevel > 0) {
+            final cardColors = ['yellow', 'blue', 'green', 'orange', 'red'];
+            final color = cardColors[(newLevel - 1) % 5];
+            final random = Random();
+            final cardNumber = 'GC-${100000 + random.nextInt(900000)}';
+
+            final cardDoc = _firestore.collection('green_campus_cards').doc(studentId);
+            transaction.set(cardDoc, {
+              'id': studentId,
+              'studentName': studentData['fullName'] ?? 'Unknown',
+              'studentAdmission': studentData['admissionNumber'] ?? 'Unknown',
+              'studentPhone': studentData['phoneNumber'] ?? '',
+              'studentDepartment': studentData['department'] ?? '',
+              'cardNumber': cardNumber,
+              'level': newLevel,
+              'color': color,
+              'acquiredAt': FieldValue.serverTimestamp(),
+            });
+          }
         }
         transaction.delete(requestDoc);
       });
@@ -186,6 +211,15 @@ class DatabaseService {
       await _firestore.collection('green_campus_requests').doc(requestId).delete();
     } catch (e) {
       throw Exception('Error rejecting green campus request: $e');
+    }
+  }
+
+  /// Delete a student's card
+  Future<void> deleteStudentCard(String studentId) async {
+    try {
+      await _firestore.collection('green_campus_cards').doc(studentId).delete();
+    } catch (e) {
+      throw Exception('Error deleting green campus card: $e');
     }
   }
 }
