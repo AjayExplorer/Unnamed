@@ -49,7 +49,7 @@ class _RideSharingHomeScreenState extends State<RideSharingHomeScreen>
       backgroundColor: const Color(0xFFF0F9FB),
       appBar: AppBar(
         title: const Text(
-          'Carpools',
+          'Share a Ride ',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         backgroundColor: _teal,
@@ -61,8 +61,10 @@ class _RideSharingHomeScreenState extends State<RideSharingHomeScreen>
             children: [
               // Search bar
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: TextField(
                   controller: _searchCtrl,
                   onChanged: (v) =>
@@ -70,14 +72,17 @@ class _RideSharingHomeScreenState extends State<RideSharingHomeScreen>
                   style: const TextStyle(color: Colors.black87),
                   decoration: InputDecoration(
                     hintText: 'Search by Origin / Destination',
-                    hintStyle:
-                        const TextStyle(color: Colors.black45, fontSize: 14),
-                    prefixIcon: const Icon(Icons.search_rounded,
-                        color: Color(0xFF1A8FA5)),
+                    hintStyle: const TextStyle(
+                      color: Colors.black45,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: Color(0xFF1A8FA5),
+                    ),
                     filled: true,
                     fillColor: Colors.white,
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -93,7 +98,9 @@ class _RideSharingHomeScreenState extends State<RideSharingHomeScreen>
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white70,
                 labelStyle: const TextStyle(
-                    fontWeight: FontWeight.w700, fontSize: 13),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
                 tabs: const [
                   Tab(text: 'Find a Ride'),
                   Tab(text: 'Requests'),
@@ -115,22 +122,15 @@ class _RideSharingHomeScreenState extends State<RideSharingHomeScreen>
             currentStudentPhone: studentPhone,
             searchQuery: _searchQuery,
           ),
-          _RequestsTab(
-            service: _service,
-            currentStudentId: studentId,
-          ),
-          _MyRidesTab(
-            service: _service,
-            currentStudentId: studentId,
-          ),
+          _RequestsTab(service: _service, currentStudentId: studentId),
+          _MyRidesTab(service: _service, currentStudentId: studentId),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (_) => const CreateRideOfferScreen()),
+            MaterialPageRoute(builder: (_) => const CreateRideOfferScreen()),
           );
           if (result == true) {
             _service.markExpiredRides();
@@ -190,7 +190,8 @@ class _FindARideTab extends StatelessWidget {
         if (rides.isEmpty) {
           return _EmptyState(
             icon: Icons.directions_car_outlined,
-            message: 'No active rides available.\nCreate one using the + button!',
+            message:
+                'No active rides available.\nCreate one using the + button!',
           );
         }
 
@@ -217,10 +218,7 @@ class _FindARideTab extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _RequestsTab extends StatelessWidget {
-  const _RequestsTab({
-    required this.service,
-    required this.currentStudentId,
-  });
+  const _RequestsTab({required this.service, required this.currentStudentId});
 
   final RideSharingService service;
   final String currentStudentId;
@@ -274,9 +272,10 @@ class _IncomingRequestsSection extends StatelessWidget {
             const Text(
               'Incoming Requests',
               style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: Color(0xFF1F2937)),
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Color(0xFF1F2937),
+              ),
             ),
           ],
         ),
@@ -300,7 +299,9 @@ class _IncomingRequestsSection extends StatelessWidget {
 
             return StreamBuilder<List<RideRequest>>(
               stream: service.streamRequestsForMyRides(
-                  ownerId: currentStudentId, myRideIds: myRideIds),
+                ownerId: currentStudentId,
+                myRideIds: myRideIds,
+              ),
               builder: (context, reqSnap) {
                 if (reqSnap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -385,9 +386,10 @@ class _MyJoinRequestsSection extends StatelessWidget {
             const Text(
               'My Join Requests',
               style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: Color(0xFF1F2937)),
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Color(0xFF1F2937),
+              ),
             ),
           ],
         ),
@@ -417,10 +419,9 @@ class _MyJoinRequestsSection extends StatelessWidget {
 
             return Column(
               children: requests
-                  .map((req) => _MyJoinRequestCard(
-                        request: req,
-                        service: service,
-                      ))
+                  .map(
+                    (req) => _MyJoinRequestCard(request: req, service: service),
+                  )
                   .toList(),
             );
           },
@@ -435,10 +436,7 @@ class _MyJoinRequestsSection extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _MyJoinRequestCard extends StatelessWidget {
-  const _MyJoinRequestCard({
-    required this.request,
-    required this.service,
-  });
+  const _MyJoinRequestCard({required this.request, required this.service});
 
   final RideRequest request;
   final RideSharingService service;
@@ -459,9 +457,10 @@ class _MyJoinRequestCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4))
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
             ],
           ),
           child: Padding(
@@ -473,14 +472,19 @@ class _MyJoinRequestCard extends StatelessWidget {
                 if (ride != null) ...[
                   Row(
                     children: [
-                      const Icon(Icons.directions_car_rounded,
-                          color: _teal, size: 18),
+                      const Icon(
+                        Icons.directions_car_rounded,
+                        color: _teal,
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           '${ride.source} → ${ride.destination}',
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 14),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -490,7 +494,9 @@ class _MyJoinRequestCard extends StatelessWidget {
                   Text(
                     '${_formatDate(ride.rideDateTime)} at ${_formatTime(ride.rideDateTime)}',
                     style: const TextStyle(
-                        color: Color(0xFF6B7280), fontSize: 12),
+                      color: Color(0xFF6B7280),
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   // Creator info (profile photo + phone)
@@ -506,21 +512,29 @@ class _MyJoinRequestCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(ride.creatorName,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13)),
+                            Text(
+                              ride.creatorName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
                             if (ride.creatorPhone.isNotEmpty)
                               Row(
                                 children: [
-                                  const Icon(Icons.phone,
-                                      size: 11,
-                                      color: Color(0xFF6B7280)),
+                                  const Icon(
+                                    Icons.phone,
+                                    size: 11,
+                                    color: Color(0xFF6B7280),
+                                  ),
                                   const SizedBox(width: 3),
-                                  Text(ride.creatorPhone,
-                                      style: const TextStyle(
-                                          color: Color(0xFF6B7280),
-                                          fontSize: 11)),
+                                  Text(
+                                    ride.creatorPhone,
+                                    style: const TextStyle(
+                                      color: Color(0xFF6B7280),
+                                      fontSize: 11,
+                                    ),
+                                  ),
                                 ],
                               ),
                           ],
@@ -535,8 +549,6 @@ class _MyJoinRequestCard extends StatelessWidget {
 
                 // Status chip
                 _MyRequestStatusChip(status: request.status),
-
-
               ],
             ),
           ),
@@ -574,29 +586,29 @@ class _MyRequestStatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icon, label, bg, fg) = switch (status) {
       RideRequestStatus.pending => (
-          Icons.hourglass_empty_rounded,
-          'Pending Approval',
-          const Color(0xFFFFF3CD),
-          const Color(0xFF856404)
-        ),
+        Icons.hourglass_empty_rounded,
+        'Pending Approval',
+        const Color(0xFFFFF3CD),
+        const Color(0xFF856404),
+      ),
       RideRequestStatus.approved => (
-          Icons.check_circle_rounded,
-          'Approved ✓',
-          const Color(0xFFD4EDDA),
-          const Color(0xFF155724)
-        ),
+        Icons.check_circle_rounded,
+        'Approved ✓',
+        const Color(0xFFD4EDDA),
+        const Color(0xFF155724),
+      ),
       RideRequestStatus.rejected => (
-          Icons.cancel_rounded,
-          'Request Rejected',
-          const Color(0xFFF8D7DA),
-          const Color(0xFF721C24)
-        ),
+        Icons.cancel_rounded,
+        'Request Rejected',
+        const Color(0xFFF8D7DA),
+        const Color(0xFF721C24),
+      ),
       RideRequestStatus.rideCancelled => (
-          Icons.do_not_disturb_on_rounded,
-          '⚠️ Ride Cancelled by Creator',
-          const Color(0xFFFFE5E5),
-          const Color(0xFF9B1C1C)
-        ),
+        Icons.do_not_disturb_on_rounded,
+        '⚠️ Ride Cancelled by Creator',
+        const Color(0xFFFFE5E5),
+        const Color(0xFF9B1C1C),
+      ),
     };
 
     return Container(
@@ -614,9 +626,10 @@ class _MyRequestStatusChip extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                  color: fg,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13),
+                color: fg,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
             ),
           ),
         ],
@@ -625,16 +638,12 @@ class _MyRequestStatusChip extends StatelessWidget {
   }
 }
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // TAB 3 — My Rides
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _MyRidesTab extends StatelessWidget {
-  const _MyRidesTab({
-    required this.service,
-    required this.currentStudentId,
-  });
+  const _MyRidesTab({required this.service, required this.currentStudentId});
 
   final RideSharingService service;
   final String currentStudentId;
@@ -662,10 +671,8 @@ class _MyRidesTab extends StatelessWidget {
         return ListView.builder(
           padding: const EdgeInsets.all(12),
           itemCount: rides.length,
-          itemBuilder: (ctx, i) => _MyRideCard(
-            ride: rides[i],
-            service: service,
-          ),
+          itemBuilder: (ctx, i) =>
+              _MyRideCard(ride: rides[i], service: service),
         );
       },
     );
@@ -710,9 +717,10 @@ class _RideCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4))
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Padding(
@@ -733,25 +741,36 @@ class _RideCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(ride.creatorName,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(
+                        ride.creatorName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
                       Text(
                         '${ride.availableSeats} seat${ride.availableSeats != 1 ? 's' : ''} available',
                         style: const TextStyle(
-                            color: Color(0xFF6B7280), fontSize: 12),
+                          color: Color(0xFF6B7280),
+                          fontSize: 12,
+                        ),
                       ),
                       // Phone number
                       if (ride.creatorPhone.isNotEmpty)
                         Row(
                           children: [
-                            const Icon(Icons.phone,
-                                size: 12, color: Color(0xFF6B7280)),
+                            const Icon(
+                              Icons.phone,
+                              size: 12,
+                              color: Color(0xFF6B7280),
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               ride.creatorPhone,
                               style: const TextStyle(
-                                  color: Color(0xFF6B7280), fontSize: 12),
+                                color: Color(0xFF6B7280),
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -777,22 +796,32 @@ class _RideCard extends StatelessWidget {
             // Date & time
             Row(
               children: [
-                const Icon(Icons.calendar_today_rounded,
-                    size: 14, color: Color(0xFF6B7280)),
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 14,
+                  color: Color(0xFF6B7280),
+                ),
                 const SizedBox(width: 6),
                 Text(
                   _formatDate(ride.rideDateTime),
                   style: const TextStyle(
-                      color: Color(0xFF6B7280), fontSize: 13),
+                    color: Color(0xFF6B7280),
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(width: 16),
-                const Icon(Icons.access_time_rounded,
-                    size: 14, color: Color(0xFF6B7280)),
+                const Icon(
+                  Icons.access_time_rounded,
+                  size: 14,
+                  color: Color(0xFF6B7280),
+                ),
                 const SizedBox(width: 6),
                 Text(
                   _formatTime(ride.rideDateTime),
                   style: const TextStyle(
-                      color: Color(0xFF6B7280), fontSize: 13),
+                    color: Color(0xFF6B7280),
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -801,8 +830,7 @@ class _RideCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 ride.additionalDetails,
-                style: const TextStyle(
-                    color: Color(0xFF6B7280), fontSize: 12),
+                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -885,15 +913,17 @@ class _RequestButtonState extends State<_RequestButton> {
       if (error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(error),
-              backgroundColor: Colors.redAccent,
-              behavior: SnackBarBehavior.floating),
+            content: Text(error),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Request sent! Awaiting approval.'),
-              behavior: SnackBarBehavior.floating),
+            content: Text('Request sent! Awaiting approval.'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -904,13 +934,14 @@ class _RequestButtonState extends State<_RequestButton> {
     // Stream my request for this ride to show real-time status
     return StreamBuilder<List<RideRequest>>(
       stream: widget.service.streamMyRequests(
-          requesterId: widget.currentStudentId),
+        requesterId: widget.currentStudentId,
+      ),
       builder: (context, snap) {
         final myRequests = snap.data ?? [];
         final myRequest = myRequests.cast<RideRequest?>().firstWhere(
-              (r) => r?.rideId == widget.ride.id,
-              orElse: () => null,
-            );
+          (r) => r?.rideId == widget.ride.id,
+          orElse: () => null,
+        );
 
         if (myRequest != null) {
           // Show current status chip
@@ -931,18 +962,19 @@ class _RequestButtonState extends State<_RequestButton> {
               disabledBackgroundColor: Colors.grey.shade300,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: _loading
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child:
-                        CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
                   )
-                : Text(canRequest
-                    ? 'Request to Join'
-                    : 'No Seats Available'),
+                : Text(canRequest ? 'Request to Join' : 'No Seats Available'),
           ),
         );
       },
@@ -961,10 +993,26 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, bg, fg) = switch (status) {
-      RideRequestStatus.pending => ('Pending', const Color(0xFFFFF3CD), const Color(0xFF856404)),
-      RideRequestStatus.approved => ('Approved ✓', const Color(0xFFD4EDDA), const Color(0xFF155724)),
-      RideRequestStatus.rejected => ('Rejected', const Color(0xFFF8D7DA), const Color(0xFF721C24)),
-      RideRequestStatus.rideCancelled => ('⚠️ Ride Cancelled', const Color(0xFFFFE5E5), const Color(0xFF9B1C1C)),
+      RideRequestStatus.pending => (
+        'Pending',
+        const Color(0xFFFFF3CD),
+        const Color(0xFF856404),
+      ),
+      RideRequestStatus.approved => (
+        'Approved ✓',
+        const Color(0xFFD4EDDA),
+        const Color(0xFF155724),
+      ),
+      RideRequestStatus.rejected => (
+        'Rejected',
+        const Color(0xFFF8D7DA),
+        const Color(0xFF721C24),
+      ),
+      RideRequestStatus.rideCancelled => (
+        '⚠️ Ride Cancelled',
+        const Color(0xFFFFE5E5),
+        const Color(0xFF9B1C1C),
+      ),
     };
 
     return Container(
@@ -977,8 +1025,11 @@ class _StatusChip extends StatelessWidget {
       child: Center(
         child: Text(
           label,
-          style:
-              TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 14),
+          style: TextStyle(
+            color: fg,
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+          ),
         ),
       ),
     );
@@ -1011,9 +1062,10 @@ class _RideRequestGroup extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4))
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Padding(
@@ -1024,19 +1076,27 @@ class _RideRequestGroup extends StatelessWidget {
             // Ride header
             Row(
               children: [
-                const Icon(Icons.directions_car_rounded, color: _teal, size: 20),
+                const Icon(
+                  Icons.directions_car_rounded,
+                  color: _teal,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     '${ride.source} → ${ride.destination}',
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 14),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFD0EFF4),
                     borderRadius: BorderRadius.circular(8),
@@ -1044,30 +1104,32 @@ class _RideRequestGroup extends StatelessWidget {
                   child: Text(
                     '${requests.length} request${requests.length != 1 ? 's' : ''}',
                     style: const TextStyle(
-                        color: _teal,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700),
+                      color: _teal,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
             ),
             Text(
               '${_formatDate(ride.rideDateTime)} at ${_formatTime(ride.rideDateTime)} · ${ride.availableSeats} seats left',
-              style:
-                  const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
             ),
             const SizedBox(height: 10),
             const Divider(height: 1),
             const SizedBox(height: 6),
 
             // Requests list
-            ...requests.map((req) => _RequestRow(
-                  request: req,
-                  service: service,
-                  rideId: ride.id ?? '',
-                  rideIsActive: ride.status == RideStatus.active,
-                  availableSeats: ride.availableSeats,
-                )),
+            ...requests.map(
+              (req) => _RequestRow(
+                request: req,
+                service: service,
+                rideId: ride.id ?? '',
+                rideIsActive: ride.status == RideStatus.active,
+                availableSeats: ride.availableSeats,
+              ),
+            ),
           ],
         ),
       ),
@@ -1129,9 +1191,10 @@ class _RequestRowState extends State<_RequestRow> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed to approve: $e'),
-              backgroundColor: Colors.redAccent,
-              behavior: SnackBarBehavior.floating),
+            content: Text('Failed to approve: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } finally {
@@ -1147,9 +1210,10 @@ class _RequestRowState extends State<_RequestRow> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed to reject: $e'),
-              backgroundColor: Colors.redAccent,
-              behavior: SnackBarBehavior.floating),
+            content: Text('Failed to reject: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } finally {
@@ -1161,9 +1225,8 @@ class _RequestRowState extends State<_RequestRow> {
   Widget build(BuildContext context) {
     final req = widget.request;
     final isPending = req.status == RideRequestStatus.pending;
-    final canAction = isPending &&
-        widget.rideIsActive &&
-        widget.availableSeats > 0;
+    final canAction =
+        isPending && widget.rideIsActive && widget.availableSeats > 0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -1182,20 +1245,29 @@ class _RequestRowState extends State<_RequestRow> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(req.requesterName,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
+                    Text(
+                      req.requesterName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
                     // Phone number
                     if (req.requesterPhone.isNotEmpty)
                       Row(
                         children: [
-                          const Icon(Icons.phone,
-                              size: 11, color: Color(0xFF6B7280)),
+                          const Icon(
+                            Icons.phone,
+                            size: 11,
+                            color: Color(0xFF6B7280),
+                          ),
                           const SizedBox(width: 3),
                           Text(
                             req.requesterPhone,
                             style: const TextStyle(
-                                color: Color(0xFF6B7280), fontSize: 11),
+                              color: Color(0xFF6B7280),
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -1273,8 +1345,8 @@ class _MyRideCard extends StatelessWidget {
     final statusLabel = ride.status == RideStatus.cancelled
         ? 'Cancelled'
         : ride.isExpired
-            ? 'Expired'
-            : 'Active';
+        ? 'Expired'
+        : 'Active';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -1283,9 +1355,10 @@ class _MyRideCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4))
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Padding(
@@ -1302,22 +1375,29 @@ class _MyRideCard extends StatelessWidget {
                   child: Text(
                     '${ride.source} → ${ride.destination}',
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(statusLabel,
-                      style: TextStyle(
-                          color: statusColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12)),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1326,19 +1406,33 @@ class _MyRideCard extends StatelessWidget {
             // Date & time
             Row(
               children: [
-                const Icon(Icons.calendar_today_rounded,
-                    size: 13, color: Color(0xFF6B7280)),
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 13,
+                  color: Color(0xFF6B7280),
+                ),
                 const SizedBox(width: 5),
-                Text(_formatDate(ride.rideDateTime),
-                    style: const TextStyle(
-                        color: Color(0xFF6B7280), fontSize: 12)),
+                Text(
+                  _formatDate(ride.rideDateTime),
+                  style: const TextStyle(
+                    color: Color(0xFF6B7280),
+                    fontSize: 12,
+                  ),
+                ),
                 const SizedBox(width: 12),
-                const Icon(Icons.access_time_rounded,
-                    size: 13, color: Color(0xFF6B7280)),
+                const Icon(
+                  Icons.access_time_rounded,
+                  size: 13,
+                  color: Color(0xFF6B7280),
+                ),
                 const SizedBox(width: 5),
-                Text(_formatTime(ride.rideDateTime),
-                    style: const TextStyle(
-                        color: Color(0xFF6B7280), fontSize: 12)),
+                Text(
+                  _formatTime(ride.rideDateTime),
+                  style: const TextStyle(
+                    color: Color(0xFF6B7280),
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -1347,37 +1441,46 @@ class _MyRideCard extends StatelessWidget {
             Row(
               children: [
                 _SeatStat(
-                    label: 'Total', value: '${ride.totalSeats}', color: _teal),
+                  label: 'Total',
+                  value: '${ride.totalSeats}',
+                  color: _teal,
+                ),
                 const SizedBox(width: 16),
                 _SeatStat(
-                    label: 'Available',
-                    value: '${ride.availableSeats}',
-                    color: const Color(0xFF155724)),
+                  label: 'Available',
+                  value: '${ride.availableSeats}',
+                  color: const Color(0xFF155724),
+                ),
                 const SizedBox(width: 16),
                 _SeatStat(
-                    label: 'Filled',
-                    value: '$filled',
-                    color: Colors.orange.shade700),
+                  label: 'Filled',
+                  value: '$filled',
+                  color: Colors.orange.shade700,
+                ),
               ],
             ),
 
             // Participants
             if (ride.participantIds.isNotEmpty) ...[
               const SizedBox(height: 10),
-              Text('Joined: ${ride.participantIds.length} passenger${ride.participantIds.length != 1 ? 's' : ''}',
-                  style: const TextStyle(
-                      color: Color(0xFF2AADC4),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13)),
+              Text(
+                'Joined: ${ride.participantIds.length} passenger${ride.participantIds.length != 1 ? 's' : ''}',
+                style: const TextStyle(
+                  color: Color(0xFF2AADC4),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
             ],
 
             if (ride.additionalDetails.isNotEmpty) ...[
               const SizedBox(height: 6),
-              Text(ride.additionalDetails,
-                  style: const TextStyle(
-                      color: Color(0xFF6B7280), fontSize: 12),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis),
+              Text(
+                ride.additionalDetails,
+                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
 
             // Cancel/Delete button (only for active rides)
@@ -1388,14 +1491,20 @@ class _MyRideCard extends StatelessWidget {
                 height: 42,
                 child: OutlinedButton.icon(
                   onPressed: () => _confirmDelete(context),
-                  icon: const Icon(Icons.delete_outline_rounded,
-                      color: Colors.redAccent, size: 18),
-                  label: const Text('Delete Ride',
-                      style: TextStyle(color: Colors.redAccent)),
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.redAccent,
+                    size: 18,
+                  ),
+                  label: const Text(
+                    'Delete Ride',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.redAccent),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ),
@@ -1412,7 +1521,8 @@ class _MyRideCard extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Ride?'),
         content: const Text(
-            'This will cancel the ride and notify all passengers. This action cannot be undone.'),
+          'This will cancel the ride and notify all passengers. This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -1503,9 +1613,10 @@ class _Avatar extends StatelessWidget {
       child: Text(
         name.isNotEmpty ? name[0].toUpperCase() : '?',
         style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: _teal,
-            fontSize: radius * 0.85),
+          fontWeight: FontWeight.bold,
+          color: _teal,
+          fontSize: radius * 0.85,
+        ),
       ),
     );
   }
@@ -1535,8 +1646,7 @@ class _RouteRow extends StatelessWidget {
         Column(
           children: [
             Icon(fromIcon, size: 16, color: const Color(0xFF2AADC4)),
-            Container(
-                width: 1, height: 14, color: const Color(0xFFD0EFF4)),
+            Container(width: 1, height: 14, color: const Color(0xFFD0EFF4)),
             Icon(toIcon, size: 16, color: Colors.redAccent),
           ],
         ),
@@ -1545,13 +1655,21 @@ class _RouteRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(source,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 14)),
+              Text(
+                source,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
               const SizedBox(height: 6),
-              Text(destination,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 14)),
+              Text(
+                destination,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
             ],
           ),
         ),
@@ -1561,8 +1679,11 @@ class _RouteRow extends StatelessWidget {
 }
 
 class _SeatStat extends StatelessWidget {
-  const _SeatStat(
-      {required this.label, required this.value, required this.color});
+  const _SeatStat({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
   final String label;
   final String value;
   final Color color;
@@ -1571,22 +1692,29 @@ class _SeatStat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: color)),
-        Text(label,
-            style: const TextStyle(
-                fontSize: 11, color: Color(0xFF6B7280))),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+        ),
       ],
     );
   }
 }
 
 class _ActionButton extends StatelessWidget {
-  const _ActionButton(
-      {required this.label, required this.color, required this.onTap});
+  const _ActionButton({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
   final String label;
   final Color color;
   final VoidCallback onTap;
@@ -1596,17 +1724,19 @@ class _ActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(label,
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12)),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }
@@ -1621,14 +1751,16 @@ class _StatusBadge extends StatelessWidget {
     final (label, color) = switch (status) {
       RideRequestStatus.approved => ('Approved', const Color(0xFF155724)),
       RideRequestStatus.rejected => ('Rejected', Colors.redAccent),
-      RideRequestStatus.rideCancelled => ('Ride Cancelled', const Color(0xFF6B7280)),
+      RideRequestStatus.rideCancelled => (
+        'Ride Cancelled',
+        const Color(0xFF6B7280),
+      ),
       _ => ('Pending', const Color(0xFF856404)),
     };
-    return Text(label,
-        style: TextStyle(
-            color: color,
-            fontSize: 12,
-            fontWeight: FontWeight.w700));
+    return Text(
+      label,
+      style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700),
+    );
   }
 }
 
@@ -1653,8 +1785,7 @@ class _SectionEmptyHint extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                  color: Color(0xFF6B7280), fontSize: 13),
+              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 13),
             ),
           ),
         ],
@@ -1689,9 +1820,10 @@ class _EmptyState extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF6B7280),
-                  height: 1.5),
+                fontSize: 16,
+                color: Color(0xFF6B7280),
+                height: 1.5,
+              ),
             ),
           ],
         ),
